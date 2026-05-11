@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quick Start | DevKit Embedded</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef4ff;
+      --ink: #172033;
+      --muted: #647188;
+      --line: #dbe3ef;
+      --accent: #0f766e;
+      --accent-2: #1d4ed8;
+      --sidebar: #111827;
+      --sidebar-muted: #9ca3af;
+      --warn: #b45309;
+      --radius: 8px;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--bg); }
+    a { color: inherit; }
+    .app { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--sidebar); color: #fff; padding: 22px 18px; }
+    .brand { display: block; text-decoration: none; padding: 4px 4px 18px; border-bottom: 1px solid rgba(255,255,255,.12); margin-bottom: 18px; }
+    .brand-logo { display: block; width: 100%; max-width: 100%; height: auto; object-fit: contain; margin: 0 0 16px; border-radius: 8px; background: #fff; padding: 10px; }
+    .brand span { display: block; font-weight: 800; letter-spacing: 0; font-size: 22px; }
+    .brand small { display: block; color: var(--sidebar-muted); margin-top: 5px; }
+    .search-box { display: block; margin: 0 0 18px; }
+    .search-box span { display: block; color: var(--sidebar-muted); font-size: 12px; margin-bottom: 6px; text-transform: uppercase; }
+    .search-box input { width: 100%; border: 1px solid rgba(255,255,255,.16); border-radius: var(--radius); padding: 11px 12px; background: #0b1220; color: #fff; outline: none; }
+    .search-box input:focus { border-color: #5eead4; box-shadow: 0 0 0 3px rgba(94,234,212,.18); }
+    .search-results { margin: -6px 0 16px; display: grid; gap: 7px; }
+    .search-results-title { color: var(--sidebar-muted); font-size: 12px; text-transform: uppercase; margin: 0 0 3px; }
+    .result-link { display: block; text-decoration: none; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.06); color: #fff; border-radius: var(--radius); padding: 9px 10px; }
+    .result-link span { display: block; color: #5eead4; font-size: 11px; text-transform: uppercase; font-weight: 800; margin-bottom: 3px; }
+    .result-link strong { display: block; font-size: 13px; line-height: 1.3; }
+    .result-link small { display: block; color: #cbd5e1; line-height: 1.35; margin-top: 3px; }
+    .main-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .main-results .result-link { background: #fff; color: var(--ink); border-color: var(--line); }
+    .main-results .result-link small { color: var(--muted); }
+    nav { display: grid; gap: 4px; }
+    .nav-link { text-decoration: none; color: #d1d5db; padding: 9px 10px; border-radius: var(--radius); font-size: 14px; }
+    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,.1); color: #fff; }
+    main { min-width: 0; padding: 14px 24px; }
+    .hero { display: grid; gap: 5px; max-width: 1460px; margin: 0 auto 8px; }
+    .eyebrow { color: var(--accent); font-weight: 800; text-transform: uppercase; font-size: 12px; }
+    h1 { font-size: 30px; margin: 0; line-height: 1.08; letter-spacing: 0; }
+    h2 { font-size: 26px; margin: 0 0 14px; letter-spacing: 0; }
+    h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: 0; }
+    h4 { margin: 0 0 8px; font-size: 15px; }
+    p { line-height: 1.62; }
+    .lead { font-size: 14px; line-height: 1.35; color: var(--muted); max-width: 1160px; margin: 0; }
+    .section, .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: 0 16px 35px rgba(17,24,39,.06); }
+    .section { max-width: 1460px; margin: 0 auto 8px; }
+    .muted { color: var(--muted); }
+    .pill { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 999px; background: #dff8f3; color: #0f766e; font-weight: 700; font-size: 12px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 9px 14px; border-radius: var(--radius); text-decoration: none; border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 800; cursor: pointer; font: inherit; }
+    .button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .button:hover { transform: translateY(-1px); }
+    .button[disabled] { opacity: .42; cursor: not-allowed; transform: none; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .quick-guide { padding: 0; overflow: hidden; }
+    .quick-layout { display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(330px, .78fr); height: 100%; min-height: 0; }
+    .stage-panel { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; padding: 16px; background: #0b1220; color: #fff; }
+    .stage-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .stage-toolbar strong { font-size: 15px; }
+    .stage-toolbar span { color: #cbd5e1; font-size: 13px; }
+    .board-stage {
+      position: relative;
+      min-height: 0;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #020617;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .board-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at var(--focus-x, 50%) var(--focus-y, 50%), rgba(94,234,212,.22), transparent 22%, rgba(2,6,23,.2) 60%);
+      opacity: var(--focus-glow, 0);
+      transition: opacity .45s ease;
+    }
+    .stage-board {
+      position: absolute;
+      inset: 0;
+      background-image: url("assets/images/board_preview.jpeg");
+      background-repeat: no-repeat;
+      background-position: var(--focus-x, 50%) var(--focus-y, 50%);
+      background-size: var(--zoom, 100%) auto;
+      transition: background-position .75s ease, background-size .75s ease;
+    }
+    .stage-label {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      max-width: calc(100% - 36px);
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(15,23,42,.82);
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-weight: 800;
+      backdrop-filter: blur(12px);
+    }
+    .progress-dots { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 28px; height: 5px; border-radius: 999px; background: rgba(255,255,255,.18); transition: background .2s ease, width .2s ease; }
+    .dot.is-active { width: 44px; background: #5eead4; }
+    .step-panel { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; padding: 16px; min-height: 0; background: linear-gradient(180deg, #ffffff, #f8fbff); }
+    .step-panel header { display: grid; gap: 8px; }
+    .step-panel h2 { margin: 0; font-size: 22px; line-height: 1.14; }
+    .step-text { margin: 0; color: var(--muted); line-height: 1.38; }
+    .step-body { min-height: 0; overflow: auto; padding-right: 4px; }
+    .step-list { margin: 0; padding-left: 20px; }
+    .step-list li { margin: 4px 0; line-height: 1.34; }
+    .step-media { align-self: start; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #fff; box-shadow: 0 18px 35px rgba(15,23,42,.08); }
+    .step-media img { display: block; width: 100%; max-height: clamp(145px, 22vh, 230px); object-fit: contain; background: #f8fafc; }
+    .step-media figcaption { padding: 8px 10px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
+    .step-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
+    .step-count { color: var(--muted); font-size: 13px; font-weight: 800; }
+    .check-card { border: 1px solid #c7eadf; background: #effcf7; border-radius: 10px; padding: 14px; }
+    .check-card strong { display: block; margin-bottom: 6px; color: #0f766e; }
+    [hidden] { display: none !important; }
+    @media (min-width: 1121px) {
+      html, body, .app { height: 100vh; }
+      main { display: flex; flex-direction: column; height: 100vh; overflow: auto; }
+      .hero { flex: 0 0 auto; width: 100%; }
+      .quick-guide { flex: 1 1 auto; width: 100%; min-height: 0; margin-bottom: 0; }
+      .global-search[hidden] { display: none !important; }
+    }
+    @media (min-width: 1121px) and (max-height: 760px) {
+      main { padding-top: 10px; padding-bottom: 10px; }
+      .hero .lead { display: none; }
+      h1 { font-size: 27px; }
+      .eyebrow { font-size: 11px; }
+    }
+    @media (max-width: 1120px) {
+      .quick-layout { grid-template-columns: 1fr; }
+      .quick-layout { height: auto; }
+      .board-stage { min-height: 54vw; }
+    }
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      main { padding: 22px; }
+      .main-results { grid-template-columns: 1fr; }
+      h1 { font-size: 32px; }
+    }
+    @media (max-width: 640px) {
+      .stage-panel, .step-panel { padding: 16px; }
+      .stage-toolbar, .step-controls { align-items: flex-start; display: grid; }
+      .board-stage { min-height: 68vw; }
+      .dot { width: 20px; }
+      .dot.is-active { width: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="index.html">
+        <img class="brand-logo" src="assets/images/SIP_Logo.jpeg" alt="SIP logo">
+        <span>DevKit Embedded</span>
+        <small>Training Board</small>
+      </a>
+      <label class="search-box">
+        <span>Search</span>
+        <input data-search type="search" placeholder="Find pin, switch, example...">
+      </label>
+      <div class="search-results" data-search-results hidden></div>
+      <nav>
+        <a class="nav-link " href="index.html">Board Overview</a>
+        <a class="nav-link active" href="quick-start.html">Quick Start</a>
+        <a class="nav-link " href="quick-firmware-upload.html">Firmware Upload</a>
+        <a class="nav-link " href="hardware/power.html">Power</a>
+<a class="nav-link " href="hardware/module-card.html">STM32 Module</a>
+<a class="nav-link " href="hardware/programming.html">Programming</a>
+<a class="nav-link " href="hardware/lcd.html">LCD</a>
+<a class="nav-link " href="hardware/keypad.html">Keypad</a>
+<a class="nav-link " href="hardware/switches.html">Switches</a>
+<a class="nav-link " href="hardware/gpio.html">GPIO / LEDs</a>
+<a class="nav-link " href="hardware/analog.html">Analog / CAN</a>
+<a class="nav-link " href="hardware/communications.html">Comms / RTC / SD</a>
+<a class="nav-link " href="hardware/esp32.html">ESP32 / USB</a>
+<a class="nav-link " href="hardware/seven-segment.html">Seven Segment</a>
+        <a class="nav-link " href="pinout.html">Pinout Reference</a>
+        <a class="nav-link " href="examples.html">Examples</a>
+      </nav>
+    </aside>
+    <main>
+      <section class="section global-search" data-global-search hidden>
+        <h2>Search Results</h2>
+        <div class="main-results" data-global-search-list></div>
+      </section>
+
+      <section class="hero searchable" data-search-item>
+        <span class="eyebrow">Programming quick start</span>
+        <h1>Prepare the Board for Firmware Upload</h1>
+        <p class="lead">This guided presentation walks through the hardware setup required before loading the first STM32 firmware: power, USB connection, boot switches, DIP routing, and reset.</p>
+      </section>
+
+      <section class="section quick-guide searchable" data-search-item data-quick-start>
+        <div class="quick-layout">
+          <div class="stage-panel">
+            <div class="stage-toolbar">
+              <div>
+                <strong data-stage-heading>Full board view</strong>
+                <span data-stage-subtitle>Press Start to begin the hardware preparation sequence.</span>
+              </div>
+              <span class="pill" data-mode-pill>Ready</span>
+            </div>
+            <div class="board-stage" aria-label="Animated board focus view">
+              <div class="stage-board" data-board-stage></div>
+              <div class="stage-label" data-stage-label>DevKit Embedded main board</div>
+            </div>
+            <div class="progress-dots" aria-label="Guide progress" data-progress></div>
+          </div>
+
+          <aside class="step-panel" aria-live="polite">
+            <header>
+              <span class="eyebrow" data-step-kicker>Hardware preparation</span>
+              <h2 data-step-title>Start with the full board</h2>
+              <p class="step-text" data-step-body>Use the presentation controls to move through each required hardware action before opening STM32CubeProgrammer.</p>
+            </header>
+
+            <div class="step-body">
+              <figure class="step-media" data-step-media>
+                <img data-step-image src="assets/images/board_preview.jpeg" alt="Full DevKit Embedded board">
+                <figcaption data-step-caption>Full board orientation before starting.</figcaption>
+              </figure>
+              <ol class="step-list" data-step-list>
+                <li>Place the board on a stable, non-conductive surface.</li>
+                <li>Keep the USB cable and power source ready.</li>
+                <li>Press Start when you are ready to configure the hardware.</li>
+              </ol>
+              <div class="check-card" data-done-card hidden>
+                <strong>Hardware configuration is done.</strong>
+                The board is ready to accept the first firmware.
+              </div>
+            </div>
+
+            <div class="step-controls">
+              <span class="step-count" data-step-count>Before step 1</span>
+              <div class="actions">
+                <button class="button" type="button" data-back disabled>Back</button>
+                <button class="button primary" type="button" data-next>Start</button>
+                <a class="button primary" href="quick-firmware-upload.html" data-firmware-link hidden>Open firmware developing and upload guide</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const SITE_INDEX = [
+      { type: 'Guide', title: 'Quick Start', summary: 'Prepare the board hardware for STM32 firmware upload.', url: 'quick-start.html', search: 'quick start programming upload firmware power SW1 USB BOOT0 BOOT1 SW12 DIP EN SW11 reset SW9 STM32CubeProgrammer' },
+      { type: 'Guide', title: 'Firmware Developing and Upload', summary: 'Reserved page for the next firmware upload guide.', url: 'quick-firmware-upload.html', search: 'firmware developing upload STM32CubeProgrammer hex build flash' },
+      { type: 'Hardware', title: 'Power Section', summary: 'Power entry, SW1 board power, and voltage indicators.', url: 'hardware/power.html', search: 'power SW1 USB 5V power jack socket X30 battery' },
+      { type: 'Hardware', title: 'Programming, Reset, and Wake', summary: 'USB programming, Prog-Port1, Prog-Port2, SW3, and SW9 reset.', url: 'hardware/programming.html', search: 'programming USB ST-Link SW9 reset Prog-Port1 Prog-Port2 STM32CubeProgrammer' },
+      { type: 'Hardware', title: 'STM32 Module Card', summary: 'STM32 module card and BOOT0 / BOOT1 setup.', url: 'hardware/module-card.html', search: 'module card BOOT0 BOOT1 STM32F446RE boot switches' },
+      { type: 'Hardware', title: 'Configuration Switches', summary: 'SW11 DIP bank and SW12 DIP-EN route.', url: 'hardware/switches.html', search: 'switch bank SW11 SW12 DIP EN configuration switches' },
+      { type: 'Reference', title: 'Examples', summary: 'Firmware examples from basic to advanced.', url: 'examples.html', search: 'examples code downloads zip LCD keypad ESP32' }
+    ];
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+    const resultHtml = (item) => `
+      <a class="result-link" href="${escapeHtml(item.url)}">
+        <span>${escapeHtml(item.type)}</span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.summary)}</small>
+      </a>`;
+    const globalSearch = document.querySelector('[data-global-search]');
+    const globalSearchList = document.querySelector('[data-global-search-list]');
+    const sidebarResults = document.querySelector('[data-search-results]');
+    const renderSearchResults = (query) => {
+      const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+      if (words.length === 0) {
+        if (globalSearch) globalSearch.hidden = true;
+        if (sidebarResults) sidebarResults.hidden = true;
+        return;
+      }
+      const matches = SITE_INDEX
+        .map((item) => ({ ...item, searchText: `${item.title} ${item.summary} ${item.search}`.toLowerCase() }))
+        .filter((item) => words.every((word) => item.searchText.includes(word)))
+        .slice(0, 12);
+      const html = matches.length
+        ? matches.map(resultHtml).join('')
+        : '<p class="muted">No matching section, pin, or example found.</p>';
+      if (globalSearch && globalSearchList) {
+        globalSearch.hidden = false;
+        globalSearchList.innerHTML = html;
+      }
+      if (sidebarResults) {
+        sidebarResults.hidden = false;
+        sidebarResults.innerHTML = '<p class="search-results-title">Results</p>' + (matches.slice(0, 7).map(resultHtml).join('') || '<small>No matches</small>');
+      }
+    };
+    const searchInput = document.querySelector('[data-search]');
+    if (searchInput) {
+      const targets = Array.from(document.querySelectorAll('[data-search-item]'));
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        renderSearchResults(q);
+        targets.forEach((target) => {
+          target.hidden = q.length > 0 && !target.textContent.toLowerCase().includes(q);
+        });
+      });
+    }
+
+    const steps = [
+      {
+        kicker: 'Step 1 of 6',
+        title: 'Power the board',
+        body: 'Zoom to the power section, connect board power, then move SW1 to the ON position.',
+        label: 'Power section: connect power and switch SW1 ON',
+        stageTitle: 'Power section',
+        stageSubtitle: 'Connect the power input and switch SW1 ON.',
+        focusX: 0,
+        focusY: 100,
+        zoom: 230,
+        image: 'assets/images/steps/step1_power.png',
+        imageAlt: 'Step 1 power section showing SW1 ON',
+        caption: 'Step 1: connect power and turn SW1 ON.',
+        list: [
+          'Connect the board to a valid power source.',
+          'Move SW1 to ON to enable board power.',
+          'Confirm the board power indicators are active before continuing.'
+        ]
+      },
+      {
+        kicker: 'Step 2 of 6',
+        title: 'Connect the programming USB cable',
+        body: 'Zoom to the programming area and connect the USB cable used for direct USB programming.',
+        label: 'Programming section: connect the USB cable',
+        stageTitle: 'Programming USB',
+        stageSubtitle: 'Connect the USB cable to the board programming USB connector.',
+        focusX: 0,
+        focusY: 55,
+        zoom: 230,
+        image: 'assets/images/steps/step2_usb.png',
+        imageAlt: 'Step 2 USB cable connection',
+        caption: 'Step 2: connect the USB cable to the programming USB port.',
+        list: [
+          'Use a data-capable USB cable.',
+          'Connect the cable to the board programming USB connector.',
+          'Keep the other end connected to the computer that will run STM32CubeProgrammer.'
+        ]
+      },
+      {
+        kicker: 'Step 3 of 6',
+        title: 'Set BOOT0 and BOOT1 ON',
+        body: 'Zoom to the STM32 module card area and set the boot switches so the MCU can accept firmware.',
+        label: 'Module card: switch BOOT0 and BOOT1 ON',
+        stageTitle: 'STM32 module card',
+        stageSubtitle: 'Turn BOOT0 ON and BOOT1 ON.',
+        focusX: 37.7,
+        focusY: 49.3,
+        zoom: 245,
+        image: 'assets/images/steps/step3_mcu.png',
+        imageAlt: 'Step 3 BOOT0 and BOOT1 switches ON',
+        caption: 'Step 3: set BOOT0 and BOOT1 to ON.',
+        list: [
+          'Locate the BOOT0 switch on the STM32 module card.',
+          'Set BOOT0 to ON.',
+          'Set BOOT1 to ON as shown in the step picture.'
+        ]
+      },
+      {
+        kicker: 'Step 4 of 6',
+        title: 'Set the DIP programming route',
+        body: 'Zoom to the switch bank, select DIP-EN on SW12, and turn ON all four SW11 DIP switches.',
+        label: 'Switch bank: set SW12 to DIP-EN and SW11 all ON',
+        stageTitle: 'Switch bank',
+        stageSubtitle: 'Set SW12 to DIP-EN and turn ON SW11 DIP switches 1 to 4.',
+        focusX: 59.1,
+        focusY: 73.7,
+        zoom: 320,
+        image: 'assets/images/steps/step4_switches.jpeg',
+        imageAlt: 'Step 4 switch bank setup',
+        caption: 'Step 4: SW12 to DIP-EN and all SW11 DIP switches ON.',
+        list: [
+          'Move SW12 to the DIP-EN side.',
+          'Turn ON SW11 DIP switch 1.',
+          'Turn ON SW11 DIP switches 2, 3, and 4.'
+        ]
+      },
+      {
+        kicker: 'Step 5 of 6',
+        title: 'Reset the STM32',
+        body: 'Zoom back to the programming section and press SW9 RESET so the boot configuration is applied.',
+        label: 'Programming section: press SW9 RESET',
+        stageTitle: 'Programming reset',
+        stageSubtitle: 'Press SW9 RESET after the boot and DIP settings are ready.',
+        focusX: 13.4,
+        focusY: 53.4,
+        zoom: 265,
+        image: 'assets/images/programming.jpg',
+        imageAlt: 'Programming section with reset switch',
+        caption: 'Step 5: press SW9 RESET in the programming section.',
+        list: [
+          'Keep BOOT0, BOOT1, SW12, and SW11 in the positions from the previous steps.',
+          'Press SW9 RESET once.',
+          'The STM32 is now placed in the correct state for firmware loading.'
+        ]
+      },
+      {
+        kicker: 'Step 6 of 6',
+        title: 'Hardware configuration is done',
+        body: 'The board is ready to accept the first firmware. Continue to the firmware developing and upload guide when it is available.',
+        label: 'Ready for firmware upload',
+        stageTitle: 'Ready for firmware',
+        stageSubtitle: 'The board is prepared for the first firmware upload.',
+        focusX: 50,
+        focusY: 50,
+        zoom: 100,
+        image: 'assets/images/board_preview.jpeg',
+        imageAlt: 'Full board ready for firmware upload',
+        caption: 'Final check: hardware configuration is complete.',
+        done: true,
+        list: [
+          'Power is connected and SW1 is ON.',
+          'USB cable is connected.',
+          'BOOT0, BOOT1, SW12, SW11, and SW9 RESET steps are complete.'
+        ]
+      }
+    ];
+
+    const boardStage = document.querySelector('[data-board-stage]');
+    const stageHeading = document.querySelector('[data-stage-heading]');
+    const stageSubtitle = document.querySelector('[data-stage-subtitle]');
+    const stageLabel = document.querySelector('[data-stage-label]');
+    const modePill = document.querySelector('[data-mode-pill]');
+    const stepKicker = document.querySelector('[data-step-kicker]');
+    const stepTitle = document.querySelector('[data-step-title]');
+    const stepBody = document.querySelector('[data-step-body]');
+    const stepImage = document.querySelector('[data-step-image]');
+    const stepCaption = document.querySelector('[data-step-caption]');
+    const stepList = document.querySelector('[data-step-list]');
+    const stepCount = document.querySelector('[data-step-count]');
+    const nextButton = document.querySelector('[data-next]');
+    const backButton = document.querySelector('[data-back]');
+    const firmwareLink = document.querySelector('[data-firmware-link]');
+    const doneCard = document.querySelector('[data-done-card]');
+    const progress = document.querySelector('[data-progress]');
+    let currentStep = -1;
+    let isAnimating = false;
+
+    const setBoardFocus = (step, zoomOut = false) => {
+      const focus = zoomOut ? { focusX: 50, focusY: 50, zoom: 100 } : step;
+      document.documentElement.style.setProperty('--focus-x', `${focus.focusX}%`);
+      document.documentElement.style.setProperty('--focus-y', `${focus.focusY}%`);
+      document.documentElement.style.setProperty('--zoom', `${focus.zoom}%`);
+      document.documentElement.style.setProperty('--focus-glow', zoomOut || focus.zoom === 100 ? '0' : '1');
+    };
+
+    const renderProgress = () => {
+      progress.innerHTML = steps.map((_, index) => `<span class="dot ${index === currentStep ? 'is-active' : ''}"></span>`).join('');
+    };
+
+    const renderStep = () => {
+      if (currentStep < 0) {
+        setBoardFocus({ focusX: 50, focusY: 50, zoom: 100 });
+        renderProgress();
+        return;
+      }
+      const step = steps[currentStep];
+      setBoardFocus(step);
+      stageHeading.textContent = step.stageTitle;
+      stageSubtitle.textContent = step.stageSubtitle;
+      stageLabel.textContent = step.label;
+      modePill.textContent = currentStep === steps.length - 1 ? 'Ready' : 'Step mode';
+      stepKicker.textContent = step.kicker;
+      stepTitle.textContent = step.title;
+      stepBody.textContent = step.body;
+      stepImage.src = step.image;
+      stepImage.alt = step.imageAlt;
+      stepCaption.textContent = step.caption;
+      stepList.innerHTML = step.list.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+      stepCount.textContent = step.kicker;
+      backButton.disabled = currentStep <= 0 || isAnimating;
+      nextButton.hidden = Boolean(step.done);
+      firmwareLink.hidden = !step.done;
+      doneCard.hidden = !step.done;
+      nextButton.textContent = currentStep === steps.length - 2 ? 'Next' : 'Next';
+      renderProgress();
+    };
+
+    const goToStep = (nextStep) => {
+      if (isAnimating || nextStep < 0 || nextStep >= steps.length) return;
+      isAnimating = true;
+      backButton.disabled = true;
+      nextButton.disabled = true;
+      if (currentStep >= 0) {
+        setBoardFocus(steps[currentStep], true);
+        stageHeading.textContent = 'Full board view';
+        stageSubtitle.textContent = 'Re-centering before the next hardware location.';
+        stageLabel.textContent = 'DevKit Embedded main board';
+      }
+      window.setTimeout(() => {
+        currentStep = nextStep;
+        isAnimating = false;
+        nextButton.disabled = false;
+        renderStep();
+      }, currentStep >= 0 ? 620 : 0);
+    };
+
+    nextButton.addEventListener('click', () => goToStep(currentStep + 1));
+    backButton.addEventListener('click', () => goToStep(currentStep - 1));
+    renderProgress();
+  </script>
+</body>
+</html>

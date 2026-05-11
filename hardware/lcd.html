@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LCD 16x2 | DevKit Embedded</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef4ff;
+      --ink: #172033;
+      --muted: #647188;
+      --line: #dbe3ef;
+      --accent: #0f766e;
+      --accent-2: #1d4ed8;
+      --sidebar: #111827;
+      --sidebar-muted: #9ca3af;
+      --warn: #b45309;
+      --radius: 8px;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--bg); }
+    a { color: inherit; }
+    .app { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--sidebar); color: #fff; padding: 22px 18px; }
+    .brand { display: block; text-decoration: none; padding: 4px 4px 18px; border-bottom: 1px solid rgba(255,255,255,.12); margin-bottom: 18px; }
+    .brand-logo { display: block; width: 100%; max-width: 100%; height: auto; object-fit: contain; margin: 0 0 16px; border-radius: 8px; background: #fff; padding: 10px; }
+    .brand span { display: block; font-weight: 800; letter-spacing: 0; font-size: 22px; }
+    .brand small { display: block; color: var(--sidebar-muted); margin-top: 5px; }
+    .search-box { display: block; margin: 0 0 18px; }
+    .search-box span { display: block; color: var(--sidebar-muted); font-size: 12px; margin-bottom: 6px; text-transform: uppercase; }
+    .search-box input { width: 100%; border: 1px solid rgba(255,255,255,.16); border-radius: var(--radius); padding: 11px 12px; background: #0b1220; color: #fff; outline: none; }
+    .search-box input:focus { border-color: #5eead4; box-shadow: 0 0 0 3px rgba(94,234,212,.18); }
+    .search-results { margin: -6px 0 16px; display: grid; gap: 7px; }
+    .search-results-title { color: var(--sidebar-muted); font-size: 12px; text-transform: uppercase; margin: 0 0 3px; }
+    .result-link { display: block; text-decoration: none; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.06); color: #fff; border-radius: var(--radius); padding: 9px 10px; }
+    .result-link span { display: block; color: #5eead4; font-size: 11px; text-transform: uppercase; font-weight: 800; margin-bottom: 3px; }
+    .result-link strong { display: block; font-size: 13px; line-height: 1.3; }
+    .result-link small { display: block; color: #cbd5e1; line-height: 1.35; margin-top: 3px; }
+    .main-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .main-results .result-link { background: #fff; color: var(--ink); border-color: var(--line); }
+    .main-results .result-link small { color: var(--muted); }
+    nav { display: grid; gap: 4px; }
+    .nav-link { text-decoration: none; color: #d1d5db; padding: 9px 10px; border-radius: var(--radius); font-size: 14px; }
+    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,.1); color: #fff; }
+    main { min-width: 0; padding: 34px; }
+    .hero { display: grid; gap: 16px; max-width: 1180px; margin: 0 auto 24px; }
+    .eyebrow { color: var(--accent); font-weight: 800; text-transform: uppercase; font-size: 12px; }
+    h1 { font-size: 42px; margin: 0; line-height: 1.08; letter-spacing: 0; }
+    h2 { font-size: 26px; margin: 0 0 14px; letter-spacing: 0; }
+    h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: 0; }
+    h4 { margin: 0 0 8px; font-size: 15px; }
+    p { line-height: 1.62; }
+    .lead { font-size: 18px; color: var(--muted); max-width: 900px; }
+    .grid { display: grid; gap: 16px; }
+    .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .section, .card, .example-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: 0 16px 35px rgba(17,24,39,.06); }
+    .section { max-width: 1180px; margin: 0 auto 20px; }
+    .muted { color: var(--muted); }
+    .pill { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 999px; background: #dff8f3; color: #0f766e; font-weight: 700; font-size: 12px; }
+    .pill.soft { background: #e9efff; color: #1d4ed8; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 9px 13px; border-radius: var(--radius); text-decoration: none; border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 700; }
+    .button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .button:hover { transform: translateY(-1px); }
+    .board-map { position: relative; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; box-shadow: 0 18px 40px rgba(17,24,39,.08); }
+    .board-map img { display: block; width: 100%; height: auto; }
+    .hotspot { position: absolute; display: block; border: 2px solid rgba(20,184,166,.08); background: rgba(20,184,166,.03); border-radius: 6px; text-decoration: none; transition: .16s ease; }
+    .hotspot span { position: absolute; left: 6px; top: 6px; max-width: calc(100% - 12px); background: rgba(17,24,39,.82); color: #fff; border-radius: 5px; padding: 4px 6px; font-size: 11px; line-height: 1.2; opacity: 0; transform: translateY(-3px); transition: .16s ease; }
+    .hotspot:hover, .hotspot:focus { border-color: rgba(20,184,166,.9); background: rgba(20,184,166,.14); outline: none; }
+    .hotspot:hover span, .hotspot:focus span { opacity: 1; transform: translateY(0); }
+    .photo { width: 100%; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; }
+    .detail-photo { margin: 0; }
+    .detail-photo figcaption { margin-top: 10px; color: var(--muted); font-size: .92rem; }
+    .config-preview-popup { position: fixed; z-index: 9999; width: min(360px, calc(100vw - 28px)); background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 22px 55px rgba(15,23,42,.22); overflow: hidden; opacity: 0; transform: translateY(4px); pointer-events: none; transition: opacity .12s ease, transform .12s ease; }
+    .config-preview-popup.is-visible { opacity: 1; transform: translateY(0); }
+    .config-preview-popup img { display: block; width: 100%; max-height: 250px; object-fit: cover; background: #f8fafc; }
+    .config-preview-popup span { display: block; padding: 10px 12px; color: var(--ink); font-weight: 800; font-size: .92rem; }
+    .example-card .muted a { text-decoration-thickness: 2px; text-underline-offset: 3px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { background: #f8fafc; font-size: 13px; color: #334155; }
+    tr:last-child td { border-bottom: 0; }
+    ol, ul { padding-left: 22px; }
+    li { margin: 6px 0; line-height: 1.5; }
+    code { background: #eef2f7; color: #0f172a; padding: 2px 5px; border-radius: 5px; }
+    pre { overflow: auto; background: #08111f; color: #f8fafc; border-radius: var(--radius); padding: 16px; font-size: 13px; line-height: 1.55; max-height: 620px; border: 1px solid #1e293b; }
+    pre code { display: block; background: transparent; color: #f8fafc; padding: 0; border-radius: 0; white-space: pre; tab-size: 2; }
+    details { margin-top: 14px; }
+    summary { cursor: pointer; font-weight: 800; }
+    .example-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .example-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+    .source { color: var(--muted); font-size: 13px; }
+    .copy { border: 1px solid var(--line); background: #fff; border-radius: var(--radius); padding: 7px 10px; margin: 10px 0; font-weight: 700; cursor: pointer; }
+    .code-panel { border-top: 1px solid var(--line); padding-top: 12px; }
+    .code-path { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+    .note { border-left: 4px solid var(--warn); background: #fff7ed; padding: 12px 14px; border-radius: 0 var(--radius) var(--radius) 0; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      main { padding: 22px; }
+      .two, .three, .example-grid { grid-template-columns: 1fr; }
+      .main-results { grid-template-columns: 1fr; }
+      h1 { font-size: 32px; }
+      .example-head { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    
+    <aside class="sidebar">
+      <a class="brand" href="../index.html">
+        <img class="brand-logo" src="../assets/images/SIP_Logo.jpeg" alt="SIP logo">
+        <span>DevKit Embedded</span>
+        <small>Training Board</small>
+      </a>
+      <label class="search-box">
+        <span>Search</span>
+        <input data-search type="search" placeholder="Find pin, switch, example...">
+      </label>
+      <div class="search-results" data-search-results hidden></div>
+      <nav>
+        <a class="nav-link " href="../index.html">Board Overview</a>
+        <a class="nav-link " href="../quick-start.html">Quick Start</a>
+        <a class="nav-link " href="../quick-firmware-upload.html">Firmware Upload</a>
+        <a class="nav-link " href="../hardware/power.html">Power</a>
+<a class="nav-link " href="../hardware/module-card.html">STM32 Module</a>
+<a class="nav-link " href="../hardware/programming.html">Programming</a>
+<a class="nav-link active" href="../hardware/lcd.html">LCD</a>
+<a class="nav-link " href="../hardware/keypad.html">Keypad</a>
+<a class="nav-link " href="../hardware/switches.html">Switches</a>
+<a class="nav-link " href="../hardware/gpio.html">GPIO / LEDs</a>
+<a class="nav-link " href="../hardware/analog.html">Analog / CAN</a>
+<a class="nav-link " href="../hardware/communications.html">Comms / RTC / SD</a>
+<a class="nav-link " href="../hardware/esp32.html">ESP32 / USB</a>
+<a class="nav-link " href="../hardware/seven-segment.html">Seven Segment</a>
+        <a class="nav-link " href="../pinout.html">Pinout Reference</a>
+        <a class="nav-link " href="../examples.html">Examples</a>
+      </nav>
+    </aside>
+    
+    <main>
+      <section class="section global-search" data-global-search hidden>
+        <h2>Search Results</h2>
+        <div class="main-results" data-global-search-list></div>
+      </section>
+      
+    <section class="hero">
+      <span class="eyebrow">Hardware section</span>
+      <h1>LCD 16x2</h1>
+      <p class="lead">The 16x2 character LCD uses a 4-bit parallel interface plus a switchable backlight route.</p>
+      <div class="actions">
+        <a class="button" href="../pinout.html">Open pinout reference</a>
+        <a class="button" href="../examples.html">Open all examples</a>
+      </div>
+    </section>
+    <section class="section">
+      <div class="grid two">
+        <img class="photo searchable" data-search-item src="../assets/images/lcd.jpg" alt="LCD 16x2">
+        <div class="card searchable" data-search-item>
+          <h2>Configuration Location</h2>
+          <ul><li>SW17, SW18, SW19, and VR1 are shown in this LCD hardware section.</li><li>Set SW19 to 2:ON / 1:OFF and adjust VR1 until the text is readable.</li><li>SW18 selects the shared PB4 route; use LCD_PWM for LCD backlight examples.</li></ul>
+          <div class="note">Set the switches for the selected example before running the firmware. If the same MCU pin is shared by two board functions, only one route should be active.</div>
+        </div>
+      </div>
+    </section>
+    <section class="section searchable" data-search-item>
+      <h2>How This Section Is Used</h2>
+      <ul><li>LCD data lines are PC2, PC3, PC4, and PC5. Control lines are PC8 for RS and PC9 for EN.</li><li>Many examples use the LCD as the main user feedback device, so set contrast before debugging the firmware.</li></ul>
+    </section>
+    
+    <section class="section searchable" data-search-item>
+      <h2>Section Pin Map</h2>
+      <p class="muted">These are the pins and board signals used by this hardware section. The full board pinout remains available from the side menu.</p>
+      <div class="grid">
+            <article class="card searchable" data-search-item>
+              <h3>LCD 16x2</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Signal / Item</th><th>STM32 Pin</th><th>Notes</th></tr></thead>
+                  <tbody><tr><td>RS</td><td><code>PC8</code></td><td>LCD register select</td></tr><tr><td>EN</td><td><code>PC9</code></td><td>LCD enable</td></tr><tr><td>D4</td><td><code>PC2</code></td><td>4-bit LCD data</td></tr><tr><td>D5</td><td><code>PC3</code></td><td>4-bit LCD data</td></tr><tr><td>D6</td><td><code>PC4</code></td><td>4-bit LCD data</td></tr><tr><td>D7</td><td><code>PC5</code></td><td>4-bit LCD data</td></tr><tr><td>Backlight PWM</td><td><code>PB4</code></td><td>Route through SW18 to LCD_PWM</td></tr></tbody>
+                </table>
+              </div>
+            </article>
+            </div>
+    </section>
+    <section class="section searchable" data-search-item>
+      <h2>Datasheets</h2>
+      <div class="actions"><a class="button" href="../downloads/datasheets/lcd1602-hd44780.pdf" download>LCD1602 / HD44780 character LCD reference PDF</a></div>
+    </section>
+    <section class="section">
+      <h2>Related Examples</h2>
+      <div class="grid">
+    <article class="example-card searchable" id="ex-active-low-inputs-lcd" data-search-item>
+      <div class="example-head">
+        <div>
+          <span class="pill">Basic</span>
+          <span class="pill soft">GPIO + LCD</span>
+          <h3>Active-Low Inputs on LCD</h3>
+          <p>Reads IN1..IN4 from PB6, PB7, PC10, PC11 and displays active-low states on the LCD.</p>
+          <p class="source">Source: <code>7segments\Inputs_LCD.c</code></p>
+          <p class="muted"><strong>Configuration location:</strong> <a href="../hardware/gpio.html">SW10, SW24, SW25, SW7 in GPIO / LEDs</a> | <a href="../hardware/lcd.html">SW19, VR1 in LCD</a> | <a href="../hardware/module-card.html">DIP in Module Card</a></p>
+        </div>
+        <a class="button primary" href="../downloads/examples/active-low-inputs-lcd.zip" download>Download ZIP</a>
+      </div>
+      <div class="example-grid">
+        <div><h4>Pre-configuration</h4><ol><li>Set SW24, SW25, SW7, and SW10 to GPIO side.</li><li>Set SW19 to 2:ON / 1:OFF and adjust VR1 until LCD text is visible.</li><li>Keep the module DIP bank on the I2C side.</li></ol></div>
+        <div><h4>Run steps</h4><ol><li>Build and program Inputs_LCD.c.</li><li>Drive each input LOW; the LCD shows 1 for the active input.</li><li>Release the input HIGH; the LCD returns to 0.</li></ol></div>
+        <div><h4>Hardware section</h4><p><a href="../hardware/gpio.html">GPIO, Inputs, Buttons, and LEDs</a></p></div>
+      </div>
+      
+      <details class="code-panel">
+        <summary>Copy-ready snippet: Inputs_LCD.c</summary>
+        <p class="code-path"><code>7segments\Inputs_LCD.c</code></p>
+        <button class="copy" data-copy="code-active-low-inputs-lcd-Copy-ready-snippet-Inputs_LCD-c">Copy code</button>
+        <pre><code id="code-active-low-inputs-lcd-Copy-ready-snippet-Inputs_LCD-c" class="language-c">void main() {
+  char in1, in2, in3, in4;
+
+  // Configure LCD pins as outputs
+  GPIO_Digital_Output(&amp;GPIOC_BASE,
+      _GPIO_PINMASK_2 | _GPIO_PINMASK_3 |
+      _GPIO_PINMASK_4 | _GPIO_PINMASK_5 |
+      _GPIO_PINMASK_8 | _GPIO_PINMASK_9);
+
+  // Configure active-low inputs
+  GPIO_Digital_Input(&amp;GPIOB_BASE, _GPIO_PINMASK_6 | _GPIO_PINMASK_7);
+  GPIO_Digital_Input(&amp;GPIOC_BASE, _GPIO_PINMASK_10 | _GPIO_PINMASK_11);
+
+  Lcd_Init();
+  Lcd_Cmd(_LCD_CLEAR);
+  Lcd_Cmd(_LCD_CURSOR_OFF);
+
+  Lcd_Out(1, 1, &quot;IN1:0  IN2:0&quot;);
+  Lcd_Out(2, 1, &quot;IN3:0  IN4:0&quot;);
+
+  while(1) {
+    in1 = ActiveLowState(GPIOB_IDR.B6);
+    in2 = ActiveLowState(GPIOB_IDR.B7);
+    in3 = ActiveLowState(GPIOC_IDR.B10);
+    in4 = ActiveLowState(GPIOC_IDR.B11);
+
+    Lcd_Chr(1, 5, in1);
+    Lcd_Chr(1, 12, in2);
+    Lcd_Chr(2, 5, in3);
+    Lcd_Chr(2, 12, in4);
+
+    Delay_ms(100);
+  }
+}</code></pre>
+      </details>
+    
+    </article>
+    
+
+    <article class="example-card searchable" id="ex-lcd" data-search-item>
+      <div class="example-head">
+        <div>
+          <span class="pill">Basic</span>
+          <span class="pill soft">Display</span>
+          <h3>LCD Backlight and Text</h3>
+          <p>Initializes the 16x2 LCD, fades the backlight, and scrolls text.</p>
+          <p class="source">Source: <code>7segments\LCD.c</code></p>
+          <p class="muted"><strong>Configuration location:</strong> <a href="../hardware/lcd.html">SW19, VR1 in LCD</a> | <a href="../hardware/lcd.html">SW18 in LCD</a> | <a href="../hardware/module-card.html">DIP in Module Card</a></p>
+        </div>
+        <a class="button primary" href="../downloads/examples/lcd.zip" download>Download ZIP</a>
+      </div>
+      <div class="example-grid">
+        <div><h4>Pre-configuration</h4><ol><li>Set SW19 to 2:ON / 1:OFF.</li><li>Adjust VR1 until LCD contrast is readable.</li><li>Set the module DIP bank to I2C side.</li><li>Set SW18 so PB4 routes to LCD_PWM, not seven-segment D.</li></ol></div>
+        <div><h4>Run steps</h4><ol><li>Build and program LCD.c.</li><li>The backlight fades in, then the message scrolls.</li></ol></div>
+        <div><h4>Hardware section</h4><p><a href="../hardware/lcd.html">LCD 16x2</a></p></div>
+      </div>
+      
+      <details class="code-panel">
+        <summary>Copy-ready snippet: LCD.c</summary>
+        <p class="code-path"><code>7segments\LCD.c</code></p>
+        <button class="copy" data-copy="code-lcd-Copy-ready-snippet-LCD-c">Copy code</button>
+        <pre><code id="code-lcd-Copy-ready-snippet-LCD-c" class="language-c">void main() {
+  unsigned int i;
+  unsigned int text_len;
+
+  // Configure LCD pins as outputs
+  GPIO_Digital_Output(&amp;GPIOC_BASE,
+      _GPIO_PINMASK_2 | _GPIO_PINMASK_3 |
+      _GPIO_PINMASK_4 | _GPIO_PINMASK_5 |
+      _GPIO_PINMASK_8 | _GPIO_PINMASK_9);
+
+  // Configure PB4 as output for LCD backlight PWM
+  GPIO_Digital_Output(&amp;GPIOB_BASE, _GPIO_PINMASK_4);
+
+  // Start backlight OFF
+  LCD_PWM_OUT = 0;
+
+  // Initialize LCD
+  Lcd_Init();
+  Lcd_Cmd(_LCD_CLEAR);
+  Lcd_Cmd(_LCD_CURSOR_OFF);
+
+  // Fade backlight from 0% to 100% over 2 seconds
+  Backlight_FadeIn_2s();
+
+  // Calculate number of scroll positions
+  text_len = strlen(text);
+
+  while(1) {
+    for(i = 0; i &lt;= (text_len - 16); i++) {
+      Lcd_Cmd(_LCD_CLEAR);
+      Lcd_Out(1, 1, text + i);
+      Delay_ms(250);
+    }
+  }</code></pre>
+      </details>
+    
+    </article>
+    
+
+    <article class="example-card searchable" id="ex-pot-lcd" data-search-item>
+      <div class="example-head">
+        <div>
+          <span class="pill">Intermediate</span>
+          <span class="pill soft">ADC + LCD</span>
+          <h3>Potentiometer ADC on LCD</h3>
+          <p>Reads PC0 as ADC channel 10 and displays voltage plus percentage.</p>
+          <p class="source">Source: <code>7segments\POT_LCD.c</code></p>
+          <p class="muted"><strong>Configuration location:</strong> <a href="../hardware/analog.html">SW4 in Analog / CAN</a> | <a href="../hardware/lcd.html">SW19, VR1 in LCD</a> | <a href="../hardware/module-card.html">DIP in Module Card</a></p>
+        </div>
+        <a class="button primary" href="../downloads/examples/pot-lcd.zip" download>Download ZIP</a>
+      </div>
+      <div class="example-grid">
+        <div><h4>Pre-configuration</h4><ol><li>Set SW4 to POT side.</li><li>Set SW19 to 2:ON / 1:OFF.</li><li>Adjust VR1 for LCD contrast.</li><li>Set module DIP bank to I2C side.</li></ol></div>
+        <div><h4>Run steps</h4><ol><li>Build and program POT_LCD.c.</li><li>Rotate the potentiometer and watch voltage and percentage update.</li></ol></div>
+        <div><h4>Hardware section</h4><p><a href="../hardware/analog.html">Analog, LM34, Potentiometer, Buzzer, and CAN</a></p></div>
+      </div>
+      
+      <details class="code-panel">
+        <summary>Copy-ready snippet: POT_LCD.c</summary>
+        <p class="code-path"><code>7segments\POT_LCD.c</code></p>
+        <button class="copy" data-copy="code-pot-lcd-Copy-ready-snippet-POT_LCD-c">Copy code</button>
+        <pre><code id="code-pot-lcd-Copy-ready-snippet-POT_LCD-c" class="language-c">void main() {
+
+  // Configure LCD pins as outputs
+  GPIO_Digital_Output(&amp;GPIOC_BASE,
+      _GPIO_PINMASK_2 | _GPIO_PINMASK_3 |
+      _GPIO_PINMASK_4 | _GPIO_PINMASK_5 |
+      _GPIO_PINMASK_8 | _GPIO_PINMASK_9);
+
+  // Configure PC0 as analog input
+  ADC_Set_Input_Channel(_ADC_CHANNEL_10);
+
+  // Initialize ADC
+  ADC1_Init();
+  Set_ADC_Channel10_SampleTime_High();
+
+  // Initialize LCD
+  Lcd_Init();
+  Lcd_Cmd(_LCD_CLEAR);
+  Lcd_Cmd(_LCD_CURSOR_OFF);
+
+  while(1) {
+
+    // Read averaged ADC value
+    adc_avg = Read_ADC_Average();
+
+    // Convert ADC to voltage using the true 12-bit full-scale count.
+    voltage = (adc_avg * ADC_REF_VOLTAGE) / ADC_FULL_SCALE_COUNTS;
+
+   // Percentage based on the same true 12-bit full-scale count.
+   percent_f = (adc_avg * 100.0) / ADC_FULL_SCALE_COUNTS;
+
+   // Clamp to 100%
+   if(percent_f &gt; 100.0)
+     percent_f = 100.0;</code></pre>
+      </details>
+    
+    </article>
+    
+
+    <article class="example-card searchable" id="ex-lm34-lcd" data-search-item>
+      <div class="example-head">
+        <div>
+          <span class="pill">Intermediate</span>
+          <span class="pill soft">ADC + LCD</span>
+          <h3>LM34 Temperature on LCD</h3>
+          <p>Reads LM34 on PC0, averages ADC samples, and displays Celsius.</p>
+          <p class="source">Source: <code>LM34_LCD.c</code></p>
+          <p class="muted"><strong>Configuration location:</strong> <a href="../hardware/analog.html">SW4 in Analog / CAN</a> | <a href="../hardware/lcd.html">SW19, VR1 in LCD</a> | <a href="../hardware/module-card.html">DIP in Module Card</a></p>
+        </div>
+        <a class="button primary" href="../downloads/examples/lm34-lcd.zip" download>Download ZIP</a>
+      </div>
+      <div class="example-grid">
+        <div><h4>Pre-configuration</h4><ol><li>Set SW4 to LM34 side.</li><li>Set SW19 to 2:ON / 1:OFF.</li><li>Adjust VR1 for LCD contrast.</li><li>Set module DIP bank to I2C side.</li></ol></div>
+        <div><h4>Run steps</h4><ol><li>Build and program LM34_LCD.c.</li><li>The LCD displays the calculated temperature in Celsius.</li></ol></div>
+        <div><h4>Hardware section</h4><p><a href="../hardware/analog.html">Analog, LM34, Potentiometer, Buzzer, and CAN</a></p></div>
+      </div>
+      
+      <details class="code-panel">
+        <summary>Copy-ready snippet: LM34_LCD.c</summary>
+        <p class="code-path"><code>LM34_LCD.c</code></p>
+        <button class="copy" data-copy="code-lm34-lcd-Copy-ready-snippet-LM34_LCD-c">Copy code</button>
+        <pre><code id="code-lm34-lcd-Copy-ready-snippet-LM34_LCD-c" class="language-c">void main() {
+
+  // Configure LCD pins as outputs
+  GPIO_Digital_Output(&amp;GPIOC_BASE,
+      _GPIO_PINMASK_2 | _GPIO_PINMASK_3 |
+      _GPIO_PINMASK_4 | _GPIO_PINMASK_5 |
+      _GPIO_PINMASK_8 | _GPIO_PINMASK_9);
+
+  // Configure PC0 as analog input
+  ADC_Set_Input_Channel(_ADC_CHANNEL_10);
+
+  // Initialize ADC
+  ADC1_Init();
+
+  // Initialize LCD
+  Lcd_Init();
+  Lcd_Cmd(_LCD_CLEAR);
+  Lcd_Cmd(_LCD_CURSOR_OFF);
+
+  while(1) {
+
+    // Read averaged ADC value
+    adc_avg = Read_ADC_Average();
+
+    // Convert ADC to voltage
+    voltage = (adc_avg * 3.3) / 4095.0;
+
+    // LM34: 10mV per degree Fahrenheit
+    temp_f = voltage * 100.0;
+
+    // Convert Fahrenheit to Celsius
+    temp_c = (temp_f - 32.0) * 5.0 / 9.0;
+
+    // Split into integer and 1 decimal digit</code></pre>
+      </details>
+    
+    </article>
+    
+
+    <article class="example-card searchable" id="ex-keypad-lcd" data-search-item>
+      <div class="example-head">
+        <div>
+          <span class="pill">Intermediate</span>
+          <span class="pill soft">Keypad + LCD</span>
+          <h3>Keypad to LCD</h3>
+          <p>Scans the new keypad wiring and prints one character per key press on the LCD.</p>
+          <p class="source">Source: <code>7segments\Keypad_LCD.c</code></p>
+          <p class="muted"><strong>Configuration location:</strong> <a href="../hardware/switches.html">SW11, SW12, SW13 in Switches</a> | <a href="../hardware/communications.html">SW16 in Comms / RTC / SD</a> | <a href="../hardware/programming.html">SW2 in Programming</a> | <a href="../hardware/lcd.html">SW19, VR1 in LCD</a> | <a href="../hardware/module-card.html">DIP in Module Card</a></p>
+        </div>
+        <a class="button primary" href="../downloads/examples/keypad-lcd.zip" download>Download ZIP</a>
+      </div>
+      <div class="example-grid">
+        <div><h4>Pre-configuration</h4><ol><li>Set SW11 all OFF.</li><li>Set SW12 to DIS side.</li><li>Set SW13 to KP-R2 side.</li><li>Set SW16 to KP-C side.</li><li>Set SW2 to KP-R3 side.</li><li>Set SW19 to 2:ON / 1:OFF.</li><li>Keep the four DIP switches OFF/open during keypad use.</li><li>Adjust VR1 for LCD contrast.</li></ol></div>
+        <div><h4>Run steps</h4><ol><li>Build and program Keypad_LCD.c.</li><li>Press 1..D and confirm each character appears once on the LCD.</li></ol></div>
+        <div><h4>Hardware section</h4><p><a href="../hardware/keypad.html">4x4 Keypad</a></p></div>
+      </div>
+      
+      <details class="code-panel">
+        <summary>Copy-ready snippet: Keypad_LCD.c</summary>
+        <p class="code-path"><code>7segments\Keypad_LCD.c</code></p>
+        <button class="copy" data-copy="code-keypad-lcd-Copy-ready-snippet-Keypad_LCD-c">Copy code</button>
+        <pre><code id="code-keypad-lcd-Copy-ready-snippet-Keypad_LCD-c" class="language-c">void main() {
+  char key;
+  char last_key = 0;
+  unsigned short lcd_pos = 0;
+
+  // LCD outputs
+  GPIO_Digital_Output(&amp;GPIOC_BASE,
+      _GPIO_PINMASK_2 | _GPIO_PINMASK_3 |
+      _GPIO_PINMASK_4 | _GPIO_PINMASK_5 |
+      _GPIO_PINMASK_8 | _GPIO_PINMASK_9);
+
+  // keypad rows as inputs
+  GPIO_Digital_Input(&amp;GPIOC_BASE, _GPIO_PINMASK_7 | _GPIO_PINMASK_13);
+  GPIO_Digital_Input(&amp;GPIOA_BASE, _GPIO_PINMASK_9 | _GPIO_PINMASK_10);
+
+  // keypad columns as outputs
+  GPIO_Digital_Output(&amp;GPIOC_BASE, _GPIO_PINMASK_12 | _GPIO_PINMASK_1);
+  GPIO_Digital_Output(&amp;GPIOB_BASE, _GPIO_PINMASK_2);
+  GPIO_Digital_Output(&amp;GPIOD_BASE, _GPIO_PINMASK_2);
+
+  Keypad_AllColumns_Low();
+
+  Lcd_Init();
+  Lcd_Cmd(_LCD_CLEAR);
+  Lcd_Cmd(_LCD_CURSOR_OFF);
+
+  Lcd_Out(1, 1, &quot;Keypad Test&quot;);
+  Lcd_Out(2, 1, &quot;Press Key...&quot;);
+  Delay_ms(1500);
+  Lcd_Cmd(_LCD_CLEAR);
+
+  while(1) {
+    key = Keypad_GetKey();
+</code></pre>
+      </details>
+    
+    </article>
+    </div>
+    </section>
+    
+    </main>
+  </div>
+  <script>
+    const SITE_INDEX = [{"type": "Guide", "title": "Quick Start", "summary": "Interactive hardware preparation guide for programming the STM32 board.", "url": "../quick-start.html", "search": "Quick Start programming firmware upload hardware preparation power SW1 USB BOOT0 BOOT1 SW12 DIP-EN SW11 RESET SW9 STM32CubeProgrammer"}, {"type": "Guide", "title": "Firmware Upload", "summary": "Install mikroC PRO for ARM and STM32CubeProgrammer, compile LED Blinking, and download the HEX file.", "url": "../quick-firmware-upload.html", "search": "Firmware Upload mikroC PRO for ARM STM32CubeProgrammer STM32CubeIDE Keil HEX compile download USB LED Blinking"}, {"type": "Hardware", "title": "Power Section", "summary": "Power entry, regulation, protection, board on/off control, and 3.3 V / 5 V status indicators.", "url": "../hardware/power.html", "search": "Power Section Power Power entry, regulation, protection, board on/off control, and 3.3 V / 5 V status indicators. Power selection switch and input connector are found in this Power hardware section. Before every example, power the board and confirm the 3V3 and 5V indicators are on. Use this section first for every lab because all other blocks depend on stable 3.3 V and 5 V rails. Keep external supplies within the board input range and share ground with external instruments. led-blinking standby sleep-exti Power Rails and Board Supply Board power input USB / external input Feeds the trainer board power section. 3V3 rail 3.3 V Main logic rail for STM32, ESP32, sensors, and pullups. 5V rail 5 V Board auxiliary rail used by display and external modules where required. GND Ground Common reference for the main board, module card, and external instruments. Power status LEDs 3V3 / 5V indicators Use these before running examples to confirm board power."}, {"type": "Hardware", "title": "STM32 Module Card", "summary": "The plug-in module carries the STM32F446RE MCU, oscillator, boot support, and board-to-board connector.", "url": "../hardware/module-card.html", "search": "STM32 Module Card STM32 Module The plug-in module carries the STM32F446RE MCU, oscillator, boot support, and board-to-board connector. BOOT and reset related items are on the module card and the Programming hardware section. Make sure the module card is firmly seated before programming or powering the main board. The main board routes named peripherals into the module connector, so pin names in the examples are the STM32 pins. For low-power and RTC examples, confirm the LSE crystal path is populated on the module card. led-blinking demo-test rtc-keypad-internal STM32 Module Card Key Routes MCU STM32F446RE Main controller used by the examples. Board connector Module card connector Carries GPIO, ADC, SPI, I2C, UART, SWD, reset, and power rails. USART2 PA2 / PA3 External UART test route. UART4 PA0 / PA1 ESP32 communication route. I2C1 PB8 / PB9 RTC and IMU bus. SPI1 PA4 / PA5 / PA6 / PA7 SD card bus. SWD PA13 / PA14 Programming and debug interface. Programming and Low Power SWDIO PA13 Debug/programming data SWCLK PA14 Debug/programming clock Reset NRST Manual reset through SW9 Wake-up PA0 Standby wake route through SW5"}, {"type": "Hardware", "title": "Programming, Reset, and Wake", "summary": "USB programming, SWD/programming header, reset, wake-up, and USB protection hardware.", "url": "../hardware/programming.html", "search": "Programming, Reset, and Wake Programming USB programming, SWD/programming header, reset, wake-up, and USB protection hardware. SW9 reset is shown in this Programming hardware section; SW5 wake-up is shown in the ESP32 and USB hardware section. Use SW5 for the standby wake-up example and SW9 when you need a manual reset. Use the programming USB or SWD header to load examples into the STM32. External interrupt and low-power examples also use pins routed through this support area. uart2 sleep-exti standby external-interrupt Programming and Low Power SWDIO PA13 Debug/programming data SWCLK PA14 Debug/programming clock Reset NRST Manual reset through SW9 Wake-up PA0 Standby wake route through SW5 Serial and External Wake Routes USART2 TX PA2 External UART transmit for serial test. USART2 RX PA3 External UART receive for serial test. EXTI0 / wake PA0 Wake-up and external interrupt route. External interrupt PC13 Used by external interrupt examples when routed through the switch bank."}, {"type": "Hardware", "title": "LCD 16x2", "summary": "The 16x2 character LCD uses a 4-bit parallel interface plus a switchable backlight route.", "url": "../hardware/lcd.html", "search": "LCD 16x2 LCD The 16x2 character LCD uses a 4-bit parallel interface plus a switchable backlight route. SW17, SW18, SW19, and VR1 are shown in this LCD hardware section. Set SW19 to 2:ON / 1:OFF and adjust VR1 until the text is readable. SW18 selects the shared PB4 route; use LCD_PWM for LCD backlight examples. LCD data lines are PC2, PC3, PC4, and PC5. Control lines are PC8 for RS and PC9 for EN. Many examples use the LCD as the main user feedback device, so set contrast before debugging the firmware. lcd keypad-lcd active-low-inputs-lcd lm34-lcd pot-lcd LCD 16x2 RS PC8 LCD register select EN PC9 LCD enable D4 PC2 4-bit LCD data D5 PC3 4-bit LCD data D6 PC4 4-bit LCD data D7 PC5 4-bit LCD data Backlight PWM PB4 Route through SW18 to LCD_PWM"}, {"type": "Hardware", "title": "4x4 Keypad", "summary": "The keypad uses the updated active scan: columns are driven by firmware and rows are read as pulled-down inputs.", "url": "../hardware/keypad.html", "search": "4x4 Keypad Keypad The keypad uses the updated active scan: columns are driven by firmware and rows are read as pulled-down inputs. SW11, SW12, and SW13 are shown in the Configuration Switches hardware section; SW16 is shown in the Communications hardware section; SW2 is shown in the Programming hardware section. For keypad examples, set SW11 all OFF, SW12 to DIS, SW13 to KP-R2, SW16 to KP-C, and SW2 to KP-R3. Keep the four DIP switches OFF/open during keypad scanning. Column pins: C1 PC12, C2 PC1, C3 PB2, C4 PD2. Row pins: R1 PC7, R2 PC13, R3 PA9, R4 PA10. The firmware drives one column HIGH at a time and reads a HIGH row when a key is pressed. keypad-lcd rtc-keypad-ds1337 rtc-keypad-internal demo-test 4x4 Keypad C1 PC12 Column output, pulled up C2 PC1 Column output, pulled up C3 PB2 Column output, pulled up C4 PD2 Column output, pulled up R1 PC7 Row input, pulled down R2 PC13 Row input, pulled down R3 PA9 Row input, pulled down R4 PA10 Row input, pulled down"}, {"type": "Hardware", "title": "Configuration Switches", "summary": "The switch bank selects the active route for shared MCU pins across keypad, DIP switches, LCD, seven-segment, GPIO, SD, and communication examples.", "url": "../hardware/switches.html", "search": "Configuration Switches Switches The switch bank selects the active route for shared MCU pins across keypad, DIP switches, LCD, seven-segment, GPIO, SD, and communication examples. DIP SW1..SW4 and routing switches are found in this Configuration Switches hardware section. If an example mentions a switch number, check this section first unless the example says LCD VR1 or a power control. For keypad use, leave DIP SW1..SW4 OFF/open so they do not load the scanned keypad columns. Shared pins are normal on this trainer board. Always set the route before running firmware. When moving between keypad and switch examples, power cycle or reset after changing switch positions. switches-leds push-leds keypad-lcd segments-74hc595 sd-card Push Buttons and DIP Switches PUSH1 PA9 Push button route PUSH2 PA10 Push button route PUSH3 PC13 Push button route PUSH4 PC7 Push button route DIP SW1 PC12 Active-low DIP switch route DIP SW2 PC1 Active-low DIP switch route DIP SW3 PB2 Active-low DIP switch route DIP SW4 PD2 Active-low DIP switch route Configuration Switch Routes SW19 LCD route LCD enable/visibility setup; use 2:ON / 1:OFF for LCD examples. SW18 PB4 Selects LCD_PWM or seven-segment segment D route. SW11 / SW12 PC12 / PC1 / PB2 / PD2 DIP switch bank or keypad column routing. SW13 PC13 Keypad R2, push button, or external interrupt route. SW16 Keypad columns / communication Routes shared keypad column and communication signals. SW2 PA9 Keypad R3 or alternate shared route. SW14 PA9 / PA10 / PC13 / PC7 Push-button enable route. SW15 / SW17 / SW26 / SW27 SPI / 74HC595 / SD routes Used by SD card and shift-register seven-segment examples."}, {"type": "Hardware", "title": "GPIO, Inputs, Buttons, and LEDs", "summary": "LED outputs, push buttons, active-low inputs, and general I/O terminals.", "url": "../hardware/gpio.html", "search": "GPIO, Inputs, Buttons, and LEDs GPIO / LEDs LED outputs, push buttons, active-low inputs, and general I/O terminals. SW24, SW25, SW7, and SW10 are shown in this GPIO hardware section; SW14 is shown in the Configuration Switches hardware section. For active-low input examples, route IN1..IN4 to PB6, PB7, PC10, and PC11. LED1..LED4 use PB6, PB7, PC10, and PC11. The same four pins can also be used as active-low inputs, depending on the selected route. led-blinking active-low-inputs-lcd switches-leds push-leds LEDs and Active-Low Inputs LED1 / IN1 PB6 LED output or active-low input IN1 LED2 / IN2 PB7 LED output or active-low input IN2 LED3 / IN3 PC10 LED output or active-low input IN3 LED4 / IN4 PC11 LED output or active-low input IN4 Push Buttons and DIP Switches PUSH1 PA9 Push button route PUSH2 PA10 Push button route PUSH3 PC13 Push button route PUSH4 PC7 Push button route DIP SW1 PC12 Active-low DIP switch route DIP SW2 PC1 Active-low DIP switch route DIP SW3 PB2 Active-low DIP switch route DIP SW4 PD2 Active-low DIP switch route"}, {"type": "Hardware", "title": "Analog, LM34, Potentiometer, Buzzer, and CAN", "summary": "LM34 temperature sensor, potentiometer route into PC0, buzzer driver on PC6, and the CAN terminal area.", "url": "../hardware/analog.html", "search": "Analog, LM34, Potentiometer, Buzzer, and CAN Analog / CAN LM34 temperature sensor, potentiometer route into PC0, buzzer driver on PC6, and the CAN terminal area. SW4 is found in this Analog hardware section and selects POT or LM34 on PC0. For CAN examples, use the CAN terminal in this hardware section and connect CANH/CANL with proper bus termination. PC0 is ADC channel 10 in the analog examples. PC6 drives the buzzer circuit. The CAN sender/receiver examples require a second node or CAN analyzer. lm34-lcd pot-lcd buzzer can-sender can-receiver-lcd Analog, Buzzer, and Sensors LM34 / POT ADC PC0 / ADC10 SW4 selects LM34 or potentiometer Buzzer PC6 Buzzer driver input I2C SCL PB8 DS1337 RTC and LIS2DW12 IMU clock I2C SDA PB9 DS1337 RTC and LIS2DW12 IMU data CAN Terminal CANH CAN terminal Connect to CANH on the other CAN node or analyzer. CANL CAN terminal Connect to CANL on the other CAN node or analyzer. GND CAN / board ground Share ground when required by the test setup."}, {"type": "Hardware", "title": "Communications, RTC, SD Card, and IMU", "summary": "mikroBUS area, SD card socket, DS1337 RTC, LIS2DW12 IMU, I2C pullups, and shared communication routing.", "url": "../hardware/communications.html", "search": "Communications, RTC, SD Card, and IMU Comms / RTC / SD mikroBUS area, SD card socket, DS1337 RTC, LIS2DW12 IMU, I2C pullups, and shared communication routing. SW15, SW16, and SW27 are shown in the Communications hardware section; SW17 is shown in the LCD hardware section. For I2C examples, set the module DIP bank to the I2C side. For SD examples, set the SPI route before inserting and testing the card. I2C devices share PB8 SCL and PB9 SDA. The SD card uses SPI with PA4 CS, PA5 SCK, PA6 MISO, and PA7 MOSI. The RTC and IMU examples both rely on correct I2C routing. i2c-scanner ds1337-detect lis2dw12-lcd sd-card rtc-keypad-ds1337 SD Card and Communication SD CS PA4 SPI chip select SD SCK PA5 SPI clock SD MISO PA6 SPI data from card SD MOSI PA7 SPI data to card USART2 TX PA2 External UART transmit USART2 RX PA3 External UART receive UART4 TX PA0 ESP32/communication transmit UART4 RX PA1 ESP32/communication receive CANH/CANL CAN terminal Connect to another CAN node with termination Analog, Buzzer, and Sensors LM34 / POT ADC PC0 / ADC10 SW4 selects LM34 or potentiometer Buzzer PC6 Buzzer driver input I2C SCL PB8 DS1337 RTC and LIS2DW12 IMU clock I2C SDA PB9 DS1337 RTC and LIS2DW12 IMU data"}, {"type": "Hardware", "title": "ESP32 and USB Serial", "summary": "ESP32-WROVER module area, CP2102 USB-UART, serial routing, and related protection components.", "url": "../hardware/esp32.html", "search": "ESP32 and USB Serial ESP32 / USB ESP32-WROVER module area, CP2102 USB-UART, serial routing, and related protection components. ESP32 serial routing controls are found in this ESP32 and Communications hardware section. Share ground and confirm UART voltage levels when connecting external serial tools. UART4 examples use PA0 and PA1 for the STM32 side of the ESP32 link. Arduino ESP32 examples are packaged separately in the downloads area. uart4-esp32 esp32-serial-arduino esp32-antenna-range-test stm32-esp32-web-led-control STM32 to ESP32 UART Link STM32 UART4_TX PA0 Connects to ESP32 GPIO27 / UART2 RX. STM32 UART4_RX PA1 Connects from ESP32 GPIO26 / UART2 TX. ESP32 UART2_RX GPIO27 Receives STM32 UART4_TX. ESP32 UART2_TX GPIO26 Transmits to STM32 UART4_RX. GND Common ground Required between STM32 and ESP32 for UART communication. SD Card and Communication SD CS PA4 SPI chip select SD SCK PA5 SPI clock SD MISO PA6 SPI data from card SD MOSI PA7 SPI data to card USART2 TX PA2 External UART transmit USART2 RX PA3 External UART receive UART4 TX PA0 ESP32/communication transmit UART4 RX PA1 ESP32/communication receive CANH/CANL CAN terminal Connect to another CAN node with termination"}, {"type": "Hardware", "title": "Seven-Segment Displays", "summary": "Direct multiplexed seven-segment display and 74HC595 shift-register display path.", "url": "../hardware/seven-segment.html", "search": "Seven-Segment Displays Seven Segment Direct multiplexed seven-segment display and 74HC595 shift-register display path. SW26 is shown in the Seven-Segment hardware section; SW17 and SW18 are shown in the LCD hardware section; SW15 and SW27 are shown in the Communications hardware section; SW3 is shown in the Programming hardware section. Use SV-D for direct seven-segment examples and SV-EN/SER/SRCLK routes for 74HC595 examples. Direct segment pins include PB0, PB1, PB3, PB4, PB5, PB10, and PA13. The 74HC595 path uses PA8 SER, PA14 SRCLK, and PA15 RCLK. seven-segment segments-74hc595 demo-test Direct Seven-Segment Display Segment A PB0 Direct display segment Segment B PB1 Direct display segment Segment C PB3 Direct display segment Segment D PB4 Shared route with LCD PWM Segment E PB5 Direct display segment Segment F PB10 Direct display segment Segment G PA13 Direct display segment Digit 1 PB12 Direct digit enable Digit 2 PB13 Direct digit enable Digit 3 PB14 Direct digit enable Digit 4 PB15 Direct digit enable 74HC595 Seven-Segment Path SER PA8 Serial data to shift registers SRCLK PA14 Shift-register clock RCLK PA15 Storage-register latch clock"}, {"type": "Reference", "title": "Pinout Reference", "summary": "LCD, keypad, LEDs, buttons, DIP switches, seven-segment, SD, UART, sensors, and programming pins.", "url": "../pinout.html", "search": "pinout reference connected items LCD 16x2 4x4 Keypad LEDs and Active-Low Inputs Push Buttons and DIP Switches Direct Seven-Segment Display 74HC595 Seven-Segment Path Analog, Buzzer, and Sensors SD Card and Communication Programming and Low Power RS PC8 LCD register select EN PC9 LCD enable D4 PC2 4-bit LCD data D5 PC3 4-bit LCD data D6 PC4 4-bit LCD data D7 PC5 4-bit LCD data Backlight PWM PB4 Route through SW18 to LCD_PWM C1 PC12 Column output, pulled up C2 PC1 Column output, pulled up C3 PB2 Column output, pulled up C4 PD2 Column output, pulled up R1 PC7 Row input, pulled down R2 PC13 Row input, pulled down R3 PA9 Row input, pulled down R4 PA10 Row input, pulled down LED1 / IN1 PB6 LED output or active-low input IN1 LED2 / IN2 PB7 LED output or active-low input IN2 LED3 / IN3 PC10 LED output or active-low input IN3 LED4 / IN4 PC11 LED output or active-low input IN4 PUSH1 PA9 Push button route PUSH2 PA10 Push button route PUSH3 PC13 Push button route PUSH4 PC7 Push button route DIP SW1 PC12 Active-low DIP switch route DIP SW2 PC1 Active-low DIP switch route DIP SW3 PB2 Active-low DIP switch route DIP SW4 PD2 Active-low DIP switch route Segment A PB0 Direct display segment Segment B PB1 Direct display segment Segment C PB3 Direct display segment Segment D PB4 Shared route with LCD PWM Segment E PB5 Direct display segment Segment F PB10 Direct display segment Segment G PA13 Direct display segment Digit 1 PB12 Direct digit enable Digit 2 PB13 Direct digit enable Digit 3 PB14 Direct digit enable Digit 4 PB15 Direct digit enable SER PA8 Serial data to shift registers SRCLK PA14 Shift-register clock RCLK PA15 Storage-register latch clock LM34 / POT ADC PC0 / ADC10 SW4 selects LM34 or potentiometer Buzzer PC6 Buzzer driver input I2C SCL PB8 DS1337 RTC and LIS2DW12 IMU clock I2C SDA PB9 DS1337 RTC and LIS2DW12 IMU data SD CS PA4 SPI chip select SD SCK PA5 SPI clock SD MISO PA6 SPI data from card SD MOSI PA7 SPI data to card USART2 TX PA2 External UART transmit USART2 RX PA3 External UART receive UART4 TX PA0 ESP32/communication transmit UART4 RX PA1 ESP32/communication receive CANH/CANL CAN terminal Connect to another CAN node with termination SWDIO PA13 Debug/programming data SWCLK PA14 Debug/programming clock Reset NRST Manual reset through SW9 Wake-up PA0 Standby wake route through SW5"}, {"type": "Example", "title": "LED Blinking", "summary": "Flashes LED1..LED4 on PB6, PB7, PC10, and PC11.", "url": "../examples.html#ex-led-blinking", "search": "LED Blinking Basic GPIO Flashes LED1..LED4 on PB6, PB7, PC10, and PC11. 7segments\\LedBlinking.c GPIO, Inputs, Buttons, and LEDs Set the module DIP bank to the neutral I2C side so it does not load the LED/GPIO routes. Power the board and confirm 3V3/5V LEDs are on. Build and program LedBlinking.c. Observe LED1..LED4 flashing in sequence."}, {"type": "Example", "title": "Active-Low Inputs on LCD", "summary": "Reads IN1..IN4 from PB6, PB7, PC10, PC11 and displays active-low states on the LCD.", "url": "../examples.html#ex-active-low-inputs-lcd", "search": "Active-Low Inputs on LCD Basic GPIO + LCD Reads IN1..IN4 from PB6, PB7, PC10, PC11 and displays active-low states on the LCD. 7segments\\Inputs_LCD.c GPIO, Inputs, Buttons, and LEDs Set SW24, SW25, SW7, and SW10 to GPIO side. Set SW19 to 2:ON / 1:OFF and adjust VR1 until LCD text is visible. Keep the module DIP bank on the I2C side. Build and program Inputs_LCD.c. Drive each input LOW; the LCD shows 1 for the active input. Release the input HIGH; the LCD returns to 0."}, {"type": "Example", "title": "Switches to LEDs", "summary": "Maps four active-low DIP switch inputs to the four LEDs.", "url": "../examples.html#ex-switches-leds", "search": "Switches to LEDs Basic GPIO Maps four active-low DIP switch inputs to the four LEDs. 7segments\\Switches_LEDS.c Configuration Switches Set SW12 to DIP-EN side. Set the module DIP bank to I2C side. Build and program Switches_LEDS.c. Toggle SW1..SW4 and watch LED1..LED4 follow the switch states."}, {"type": "Example", "title": "Push Buttons to LEDs", "summary": "Maps PB1..PB4 push buttons to LED1..LED4.", "url": "../examples.html#ex-push-leds", "search": "Push Buttons to LEDs Basic GPIO Maps PB1..PB4 push buttons to LED1..LED4. 7segments\\PUSH_LEDS.c Configuration Switches Set SW14 to PB-EN side. Set the module DIP bank to I2C side. Build and program PUSH_LEDS.c. Press each push button and confirm the matching LED turns on."}, {"type": "Example", "title": "Buzzer Test", "summary": "Tests the PC6 buzzer with full-on, software PWM, and tone generation.", "url": "../examples.html#ex-buzzer", "search": "Buzzer Test Basic PWM / GPIO Tests the PC6 buzzer with full-on, software PWM, and tone generation. 7segments\\Buzzer.c Analog, LM34, Potentiometer, Buzzer, and CAN No module card DIP changes are required for the buzzer. Keep other examples' output jumpers away from PC6 if externally wired. Build and program Buzzer.c. Listen for the 1 second on period, fade, then 6 second tone."}, {"type": "Example", "title": "LCD Backlight and Text", "summary": "Initializes the 16x2 LCD, fades the backlight, and scrolls text.", "url": "../examples.html#ex-lcd", "search": "LCD Backlight and Text Basic Display Initializes the 16x2 LCD, fades the backlight, and scrolls text. 7segments\\LCD.c LCD 16x2 Set SW19 to 2:ON / 1:OFF. Adjust VR1 until LCD contrast is readable. Set the module DIP bank to I2C side. Set SW18 so PB4 routes to LCD_PWM, not seven-segment D. Build and program LCD.c. The backlight fades in, then the message scrolls."}, {"type": "Example", "title": "Direct 4-Digit Seven Segment", "summary": "Exercises the direct multiplexed seven-segment display.", "url": "../examples.html#ex-seven-segment", "search": "Direct 4-Digit Seven Segment Basic Display Exercises the direct multiplexed seven-segment display. 7segments\\Seven_segment.c Seven-Segment Displays Set SW18 to SV-D. Set SW17 to SV-DP only if decimal point testing is needed. Set module DIP bank to I2C side. Build and program Seven_segment.c. Watch repeated digits, then the 0..9999 count with blanked leading zeros."}, {"type": "Example", "title": "74HC595 Seven Segment", "summary": "Uses PA8, PA14, and PA15 to drive four seven-segment digits through cascaded SN74HC595 devices.", "url": "../examples.html#ex-segments-74hc595", "search": "74HC595 Seven Segment Intermediate Display Uses PA8, PA14, and PA15 to drive four seven-segment digits through cascaded SN74HC595 devices. 7segments\\Segments_74HC595.c Seven-Segment Displays Set SW26 ON / SV-EN. Set SW27 to SRCLK side. Set SW15 to SPI-SCK. Set SW17 to SER side. Set SW3 to JTAG-DIS side. Keep module DIP bank on I2C side. Build and program Segments_74HC595.c. The four displays update through the shift-register chain."}, {"type": "Example", "title": "Potentiometer ADC on LCD", "summary": "Reads PC0 as ADC channel 10 and displays voltage plus percentage.", "url": "../examples.html#ex-pot-lcd", "search": "Potentiometer ADC on LCD Intermediate ADC + LCD Reads PC0 as ADC channel 10 and displays voltage plus percentage. 7segments\\POT_LCD.c Analog, LM34, Potentiometer, Buzzer, and CAN Set SW4 to POT side. Set SW19 to 2:ON / 1:OFF. Adjust VR1 for LCD contrast. Set module DIP bank to I2C side. Build and program POT_LCD.c. Rotate the potentiometer and watch voltage and percentage update."}, {"type": "Example", "title": "LM34 Temperature on LCD", "summary": "Reads LM34 on PC0, averages ADC samples, and displays Celsius.", "url": "../examples.html#ex-lm34-lcd", "search": "LM34 Temperature on LCD Intermediate ADC + LCD Reads LM34 on PC0, averages ADC samples, and displays Celsius. LM34_LCD.c Analog, LM34, Potentiometer, Buzzer, and CAN Set SW4 to LM34 side. Set SW19 to 2:ON / 1:OFF. Adjust VR1 for LCD contrast. Set module DIP bank to I2C side. Build and program LM34_LCD.c. The LCD displays the calculated temperature in Celsius."}, {"type": "Example", "title": "LIS2DW12 IMU on LCD", "summary": "Reads WHO_AM_I, status, acceleration, and temperature from the LIS2DW12 over I2C1.", "url": "../examples.html#ex-lis2dw12-lcd", "search": "LIS2DW12 IMU on LCD Intermediate I2C + LCD Reads WHO_AM_I, status, acceleration, and temperature from the LIS2DW12 over I2C1. 7segments\\LIS2DW12TR_LCD.c Analog, LM34, Potentiometer, Buzzer, and CAN Set SW19 to 2:ON / 1:OFF. Set SW4 to POT side if sharing the analog/IMU bank requires it. Set module DIP bank to I2C side. Adjust VR1 for LCD contrast. Build and program LIS2DW12TR_LCD.c. Confirm WHO_AM_I, then observe X/Y/Z/T values on the LCD."}, {"type": "Example", "title": "I2C Scanner", "summary": "Scans I2C addresses 0x08..0x77 and displays detected addresses.", "url": "../examples.html#ex-i2c-scanner", "search": "I2C Scanner Intermediate I2C + LCD Scans I2C addresses 0x08..0x77 and displays detected addresses. 7segments\\i2c_test.c Communications, RTC, SD Card, and IMU Set module DIP bank to I2C side. Set SW19 to 2:ON / 1:OFF and adjust VR1 for LCD contrast. Build and program i2c_test.c. Detected I2C addresses appear on the LCD."}, {"type": "Example", "title": "DS1337 Detect Test", "summary": "Reads DS1337 registers repeatedly and displays seconds on the LCD.", "url": "../examples.html#ex-ds1337-detect", "search": "DS1337 Detect Test Intermediate RTC + LCD Reads DS1337 registers repeatedly and displays seconds on the LCD. 7segments\\DS1337_Test.c Communications, RTC, SD Card, and IMU Set module DIP bank to I2C side. Set SW19 to 2:ON / 1:OFF and adjust VR1 for LCD contrast. Build and program DS1337_Test.c. The LCD seconds field should change once the RTC is responding."}, {"type": "Example", "title": "Keypad to LCD", "summary": "Scans the new keypad wiring and prints one character per key press on the LCD.", "url": "../examples.html#ex-keypad-lcd", "search": "Keypad to LCD Intermediate Keypad + LCD Scans the new keypad wiring and prints one character per key press on the LCD. 7segments\\Keypad_LCD.c 4x4 Keypad Set SW11 all OFF. Set SW12 to DIS side. Set SW13 to KP-R2 side. Set SW16 to KP-C side. Set SW2 to KP-R3 side. Set SW19 to 2:ON / 1:OFF. Keep the four DIP switches OFF/open during keypad use. Adjust VR1 for LCD contrast. Build and program Keypad_LCD.c. Press 1..D and confirm each character appears once on the LCD."}, {"type": "Example", "title": "DS1337 RTC + Keypad", "summary": "Uses keypad input to adjust the external DS1337 date/time and display it on LCD.", "url": "../examples.html#ex-rtc-keypad-ds1337", "search": "DS1337 RTC + Keypad Advanced RTC + Keypad Uses keypad input to adjust the external DS1337 date/time and display it on LCD. 7segments\\DS1337_RTC_LCD_Keypad.c 4x4 Keypad Use the same keypad/LCD switch settings as Keypad_LCD. Set module DIP bank to I2C side. Adjust VR1 for LCD contrast. Build and program DS1337_RTC_LCD_Keypad.c. Press A to adjust date/time, enter DD/MM/YY style fields, press # to save, or B to return."}, {"type": "Example", "title": "Internal RTC + Keypad", "summary": "Uses STM32 internal RTC with keypad date/time adjustment and LCD display.", "url": "../examples.html#ex-rtc-keypad-internal", "search": "Internal RTC + Keypad Advanced RTC + Keypad Uses STM32 internal RTC with keypad date/time adjustment and LCD display. 7segments\\STM32_Internal_RTC_LCD_Keypad.c 4x4 Keypad Use the same keypad/LCD switch settings as Keypad_LCD. Verify the 32.768 kHz RTC crystal is populated on the module card. Adjust VR1 for LCD contrast. Build and program STM32_Internal_RTC_LCD_Keypad.c. Press A to adjust date/time, D to display date/time, # to save, and B to go back."}, {"type": "Example", "title": "SD Card Write", "summary": "Creates UAE.TXT on a FAT16 SD card and writes United Arab Emirates.", "url": "../examples.html#ex-sd-card", "search": "SD Card Write Intermediate Storage Creates UAE.TXT on a FAT16 SD card and writes United Arab Emirates. 7segments\\SD_CARD.c Communications, RTC, SD Card, and IMU Insert a FAT16-formatted SD card. Set SW27 to SRCLK side. Set SW15 to SPI-SCK. Set SW17 to SER side. Set module DIP bank to I2C side if other routes are not in use. Build and program SD_CARD.c. Power cycle or reset, then check the SD card root directory for UAE.TXT."}, {"type": "Example", "title": "CAN Sender", "summary": "Transmits standard CAN ID 0x777 once per second with DATA0 as a counter.", "url": "../examples.html#ex-can-sender", "search": "CAN Sender Intermediate CAN Transmits standard CAN ID 0x777 once per second with DATA0 as a counter. 7segments\\CAN1_Sender.c Analog, LM34, Potentiometer, Buzzer, and CAN Set the module DIP bank to CAN side. Connect CANH/CANL to a matching receiver with proper bus termination. Build and program CAN1_Sender.c. Watch ID 0x777 frames on a CAN analyzer or the receiver example."}, {"type": "Example", "title": "CAN Receiver on LCD", "summary": "Receives ID 0x777 and displays DATA0 on the LCD.", "url": "../examples.html#ex-can-receiver-lcd", "search": "CAN Receiver on LCD Advanced CAN + LCD Receives ID 0x777 and displays DATA0 on the LCD. 7segments\\CAN_Recive_LCD.c LCD 16x2 Set module DIP bank to CAN side. Set SW19 to 2:ON / 1:OFF and adjust VR1 for LCD contrast. Connect to a sender using matching CAN bitrate and termination. Build and program CAN_Recive_LCD.c. Run CAN1_Sender on another board or CAN tool and watch DATA0 update."}, {"type": "Example", "title": "USART2 Test", "summary": "Sends yes over USART2 and echoes received data.", "url": "../examples.html#ex-uart2", "search": "USART2 Test Intermediate UART Sends yes over USART2 and echoes received data. 7segments\\UART_Test.c Programming, Reset, and Wake Connect USART2 TX/RX: PA2/PA3. Share GND with the USB-UART adapter. Build and program UART_Test.c. Open a 9600 baud serial terminal and observe the transmit/receive text."}, {"type": "Example", "title": "UART4 ESP32 Link", "summary": "Sends hello on UART4 PA0/PA1 and replies to received data.", "url": "../examples.html#ex-uart4-esp32", "search": "UART4 ESP32 Link Intermediate UART / ESP32 Sends hello on UART4 PA0/PA1 and replies to received data. 7segments\\ESP32_UART_SEND.c ESP32 and USB Serial Route PA0/PA1 to the ESP32/communication header as required. Power the ESP32 section if using the on-board ESP32. Build and program ESP32_UART_SEND.c. Open the peer UART at 9600 baud and verify the hello messages."}, {"type": "Example", "title": "External Interrupt", "summary": "Uses PC13 as an external interrupt input and PB6 as LED output.", "url": "../examples.html#ex-external-interrupt", "search": "External Interrupt Intermediate Interrupts Uses PC13 as an external interrupt input and PB6 as LED output. 7segments\\External_interrupt.c Configuration Switches Set SW13 to EX-INT side for mikroBUS interrupt or KP-R2 side if using the keypad route. Connect an interrupt source to PC13. Build and program External_interrupt.c. Trigger PC13 and confirm the LED response."}, {"type": "Example", "title": "Sleep Wake by EXTI0", "summary": "Enters sleep mode and wakes on PA0 EXTI0, pulsing PB6.", "url": "../examples.html#ex-sleep-exti", "search": "Sleep Wake by EXTI0 Advanced Low Power Enters sleep mode and wakes on PA0 EXTI0, pulsing PB6. 7segments\\STM_EXTI0.c Programming, Reset, and Wake Connect a rising-edge wake source to PA0. Keep PB6 LED route available. Build and program STM_EXTI0.c. The MCU sleeps until PA0 rises, then PB6 turns on briefly."}, {"type": "Example", "title": "Standby Wake-Up", "summary": "Enters standby mode after startup and wakes using the wake-up button route.", "url": "../examples.html#ex-standby", "search": "Standby Wake-Up Advanced Low Power Enters standby mode after startup and wakes using the wake-up button route. 7segments\\STM_Standby.c Programming, Reset, and Wake Set SW5 to Wake_UP side. Use the wake-up button/input to resume from standby. Build and program STM_Standby.c. After the startup LED pulse, the MCU enters standby; press wake-up to restart."}, {"type": "Example", "title": "Full Board Demo", "summary": "Combines LCD, keypad, RTC, LM34, seven-segment counter, LEDs, push buttons, and switches.", "url": "../examples.html#ex-demo-test", "search": "Full Board Demo Advanced Integrated Demo Combines LCD, keypad, RTC, LM34, seven-segment counter, LEDs, push buttons, and switches. 7segments\\Demo_Test.c STM32 Module Card Use keypad/LCD switch settings during password entry. Keep DIP switches OFF while keypad columns are being scanned. After #, the firmware releases column pins for switch reading. Set analog and RTC switches for LM34 and DS1337 operation as needed. Build and program Demo_Test.c. Wait for the welcome screen, enter a keypad password, press #, then observe the integrated run screen and LED/counter behavior."}, {"type": "ESP32 Example", "title": "ESP32 UART Bridge for STM32", "summary": "Uses ESP32 UART2 as a bridge between the Arduino serial monitor and STM32 UART4.", "url": "../examples.html#ex-esp32-serial-arduino", "search": "ESP32 UART Bridge for STM32 Intermediate ESP32 Arduino + STM32 UART Uses ESP32 UART2 as a bridge between the Arduino serial monitor and STM32 UART4. ESP32 and USB Serial Connect STM32 PA0 UART4_TX to ESP32 GPIO27 UART2_RX. Connect STM32 PA1 UART4_RX to ESP32 GPIO26 UART2_TX. Connect GND to GND and keep both UART links at 9600 baud. Upload ESP32_SERIAL.ino to the ESP32. Program the paired STM32 ESP32_UART_SEND.c example. Open the Arduino Serial Monitor at 9600 baud and send text both directions. ESP32_SERIAL\\ESP32_SERIAL.ino 7segments\\ESP32_UART_SEND.c"}, {"type": "ESP32 Example", "title": "ESP32 Antenna Range Test", "summary": "Four Arduino sketches compare BLE and Wi-Fi antenna range using transmitter and receiver boards.", "url": "../examples.html#ex-esp32-antenna-range-test", "search": "ESP32 Antenna Range Test Intermediate ESP32 Arduino Four Arduino sketches compare BLE and Wi-Fi antenna range using transmitter and receiver boards. ESP32 and USB Serial Use two ESP32 boards: one transmitter and one receiver. Open both Arduino Serial Monitors at 115200 baud. Test in an open area first, then compare indoor range. Upload the BLE transmitter and receiver sketches to two boards, then observe RSSI. Repeat with the Wi-Fi transmitter and receiver sketches. Move the receiver farther away and compare signal strength. ESP32_Antenna_Range_Test\\BLE_Transmitter\\BLE_Transmitter.ino ESP32_Antenna_Range_Test\\BLE_Receiver\\BLE_Receiver.ino ESP32_Antenna_Range_Test\\WiFi_Transmitter\\WiFi_Transmitter.ino ESP32_Antenna_Range_Test\\WiFi_Receiver\\WiFi_Receiver.ino"}, {"type": "ESP32 Example", "title": "STM32 + ESP32 Web LED Control", "summary": "The ESP32 hosts a web dashboard while the STM32 controls LEDs and reports push-button states over UART.", "url": "../examples.html#ex-stm32-esp32-web-led-control", "search": "STM32 + ESP32 Web LED Control Advanced ESP32 Arduino + STM32 The ESP32 hosts a web dashboard while the STM32 controls LEDs and reports push-button states over UART. ESP32 and USB Serial Connect STM32 PA0 UART4_TX to ESP32 GPIO27 UART2_RX. Connect STM32 PA1 UART4_RX to ESP32 GPIO26 UART2_TX. Connect GND to GND. Use SSID STM32-ESP32-Control and password stm32demo after the ESP32 starts its access point. Upload ESP32_Web_Control.ino to the ESP32. Program STM32_Web_Control.c to the STM32. Join the ESP32 Wi-Fi network and open the IP printed in the Arduino Serial Monitor. Use the web buttons to control STM32 LEDs and press STM32 buttons to update the web indicators. STM32_ESP32_Web_LED_Control\\ESP32_Web_Control\\ESP32_Web_Control.ino STM32_ESP32_Web_LED_Control\\STM32_Web_Control\\STM32_Web_Control.c STM32_ESP32_Web_LED_Control\\ESP32_Web_Control\\dashboard.html"}];
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+    const resultHtml = (item) => `
+      <a class="result-link" href="${escapeHtml(item.url)}">
+        <span>${escapeHtml(item.type)}</span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.summary)}</small>
+      </a>`;
+    const globalSearch = document.querySelector('[data-global-search]');
+    const globalSearchList = document.querySelector('[data-global-search-list]');
+    const sidebarResults = document.querySelector('[data-search-results]');
+    const scoreItem = (item, words) => {
+      const title = item.title.toLowerCase();
+      const type = item.type.toLowerCase();
+      const summary = item.summary.toLowerCase();
+      const searchText = item.searchText;
+      return words.reduce((score, word) => {
+        if (title === word) score += 120;
+        if (title.startsWith(word)) score += 90;
+        if (title.includes(word)) score += 70;
+        if (type.includes(word)) score += 30;
+        if (summary.includes(word)) score += 20;
+        if (searchText.includes(word)) score += 5;
+        if (item.type === 'Hardware' && title.includes(word)) score += 45;
+        if ((item.type === 'Example' || item.type === 'ESP32 Example') && title.includes(word)) score += 20;
+        return score;
+      }, 0);
+    };
+    const renderSearchResults = (query) => {
+      const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+      if (words.length === 0) {
+        if (globalSearch) globalSearch.hidden = true;
+        if (sidebarResults) sidebarResults.hidden = true;
+        return;
+      }
+      const matches = SITE_INDEX
+        .map((item) => ({ ...item, searchText: `${item.title} ${item.summary} ${item.search}`.toLowerCase() }))
+        .filter((item) => words.every((word) => item.searchText.includes(word)))
+        .map((item) => ({ ...item, score: scoreItem(item, words) }))
+        .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+        .slice(0, 18);
+      const html = matches.length
+        ? matches.map(resultHtml).join('')
+        : '<p class="muted">No matching section, pin, or example found.</p>';
+      if (globalSearch && globalSearchList) {
+        globalSearch.hidden = false;
+        globalSearchList.innerHTML = html;
+      }
+      if (sidebarResults) {
+        sidebarResults.hidden = false;
+        sidebarResults.innerHTML = '<p class="search-results-title">Results</p>' + (matches.slice(0, 7).map(resultHtml).join('') || '<small>No matches</small>');
+      }
+    };
+    const searchInput = document.querySelector('[data-search]');
+    if (searchInput) {
+      const targets = Array.from(document.querySelectorAll('[data-search-item]'));
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        renderSearchResults(q);
+        targets.forEach((target) => {
+          target.hidden = q.length > 0 && !target.textContent.toLowerCase().includes(q);
+        });
+      });
+    }
+    const CONFIG_PREVIEW_MAP = {
+      'power.html': { image: 'power.jpg', title: 'Power Section' },
+      'module-card.html': { image: 'module_card.jpg', title: 'STM32 Module Card' },
+      'programming.html': { image: 'programming.jpg', title: 'Programming, Reset, and Wake' },
+      'lcd.html': { image: 'lcd.jpg', title: 'LCD 16x2' },
+      'keypad.html': { image: 'keypad.jpg', title: '4x4 Keypad' },
+      'switches.html': { image: 'switch_bank.jpg', title: 'Configuration Switches' },
+      'gpio.html': { image: 'gpio.jpg', title: 'GPIO, Inputs, Buttons, and LEDs' },
+      'analog.html': { image: 'analog.jpg', title: 'Analog, LM34, Potentiometer, Buzzer, and CAN' },
+      'communications.html': { image: 'mikrobus_sd_rtc.jpg', title: 'Communications, RTC, SD Card, and IMU' },
+      'esp32.html': { image: 'esp32.jpg', title: 'ESP32 and USB Serial' },
+      'seven-segment.html': { image: 'seven_segment.jpg', title: 'Seven-Segment Displays' }
+    };
+    const initConfigurationPreviews = () => {
+      const links = Array.from(document.querySelectorAll('.example-card .muted a[href*="hardware/"]'))
+        .filter((link) => /Configuration location:/i.test(link.closest('p')?.textContent || ''));
+      if (!links.length) return;
+      const imageBase = location.pathname.includes('/hardware/') ? '../assets/images/' : 'assets/images/';
+      const popup = document.createElement('div');
+      popup.className = 'config-preview-popup';
+      popup.innerHTML = '<img alt=""><span></span>';
+      document.body.appendChild(popup);
+      const previewImage = popup.querySelector('img');
+      const caption = popup.querySelector('span');
+      const positionPopup = (event) => {
+        const gap = 18;
+        const edge = 14;
+        const rect = popup.getBoundingClientRect();
+        let left = event.clientX + gap;
+        let top = event.clientY + gap;
+        if (left + rect.width + edge > window.innerWidth) left = event.clientX - rect.width - gap;
+        if (top + rect.height + edge > window.innerHeight) top = window.innerHeight - rect.height - edge;
+        popup.style.left = `${Math.max(edge, left)}px`;
+        popup.style.top = `${Math.max(edge, top)}px`;
+      };
+      const getPreview = (link) => {
+        try {
+          const fileName = new URL(link.getAttribute('href'), location.href).pathname.split('/').pop();
+          return CONFIG_PREVIEW_MAP[fileName];
+        } catch (_) {
+          return null;
+        }
+      };
+      const showPreview = (link, event) => {
+        const preview = getPreview(link);
+        if (!preview) return;
+        previewImage.src = imageBase + preview.image;
+        previewImage.alt = preview.title;
+        caption.textContent = `${link.textContent.trim()} - ${preview.title}`;
+        popup.classList.add('is-visible');
+        positionPopup(event);
+      };
+      const hidePreview = () => popup.classList.remove('is-visible');
+      links.forEach((link) => {
+        link.addEventListener('mouseenter', (event) => showPreview(link, event));
+        link.addEventListener('mousemove', positionPopup);
+        link.addEventListener('mouseleave', hidePreview);
+        link.addEventListener('focus', (event) => {
+          const rect = link.getBoundingClientRect();
+          showPreview(link, { clientX: rect.left, clientY: rect.bottom });
+        });
+        link.addEventListener('blur', hidePreview);
+      });
+    };
+    initConfigurationPreviews();
+    document.querySelectorAll('[data-copy]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const target = document.getElementById(button.dataset.copy);
+        if (!target) return;
+        await navigator.clipboard.writeText(target.innerText);
+        const oldText = button.innerText;
+        button.innerText = 'Copied';
+        setTimeout(() => button.innerText = oldText, 1200);
+      });
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+

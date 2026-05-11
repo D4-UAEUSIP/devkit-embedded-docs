@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Firmware Developing and Upload Guide | DevKit Embedded</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --ink: #172033;
+      --muted: #647188;
+      --line: #dbe3ef;
+      --accent: #0f766e;
+      --accent-2: #1d4ed8;
+      --sidebar: #111827;
+      --sidebar-muted: #9ca3af;
+      --radius: 8px;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--bg); }
+    a { color: inherit; }
+    .app { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--sidebar); color: #fff; padding: 22px 18px; }
+    .brand { display: block; text-decoration: none; padding: 4px 4px 18px; border-bottom: 1px solid rgba(255,255,255,.12); margin-bottom: 18px; }
+    .brand-logo { display: block; width: 100%; max-width: 100%; height: auto; object-fit: contain; margin: 0 0 16px; border-radius: 8px; background: #fff; padding: 10px; }
+    .brand span { display: block; font-weight: 800; font-size: 22px; }
+    .brand small { display: block; color: var(--sidebar-muted); margin-top: 5px; }
+    .search-box { display: block; margin: 0 0 18px; }
+    .search-box span { display: block; color: var(--sidebar-muted); font-size: 12px; margin-bottom: 6px; text-transform: uppercase; }
+    .search-box input { width: 100%; border: 1px solid rgba(255,255,255,.16); border-radius: var(--radius); padding: 11px 12px; background: #0b1220; color: #fff; outline: none; }
+    .search-box input:focus { border-color: #5eead4; box-shadow: 0 0 0 3px rgba(94,234,212,.18); }
+    .search-results { margin: -6px 0 16px; display: grid; gap: 7px; }
+    .search-results-title { color: var(--sidebar-muted); font-size: 12px; text-transform: uppercase; margin: 0 0 3px; }
+    .result-link { display: block; text-decoration: none; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.06); color: #fff; border-radius: var(--radius); padding: 9px 10px; }
+    .result-link span { display: block; color: #5eead4; font-size: 11px; text-transform: uppercase; font-weight: 800; margin-bottom: 3px; }
+    .result-link strong { display: block; font-size: 13px; line-height: 1.3; }
+    .result-link small { display: block; color: #cbd5e1; line-height: 1.35; margin-top: 3px; }
+    .main-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .main-results .result-link { background: #fff; color: var(--ink); border-color: var(--line); }
+    .main-results .result-link small { color: var(--muted); }
+    nav { display: grid; gap: 4px; }
+    .nav-link { text-decoration: none; color: #d1d5db; padding: 9px 10px; border-radius: var(--radius); font-size: 14px; }
+    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,.1); color: #fff; }
+    main { min-width: 0; padding: 28px; }
+    .hero, .section { max-width: 1320px; margin: 0 auto 20px; }
+    .hero { display: grid; gap: 12px; }
+    .section, .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: 0 16px 35px rgba(17,24,39,.06); }
+    .eyebrow { color: var(--accent); font-weight: 800; text-transform: uppercase; font-size: 12px; }
+    h1 { font-size: 40px; margin: 0; line-height: 1.08; letter-spacing: 0; }
+    h2 { font-size: 26px; margin: 0 0 14px; letter-spacing: 0; }
+    h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: 0; }
+    p { line-height: 1.62; }
+    .lead, .muted { color: var(--muted); }
+    .lead { font-size: 18px; max-width: 980px; }
+    .grid { display: grid; gap: 16px; }
+    .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 9px 14px; border-radius: var(--radius); text-decoration: none; border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 800; cursor: pointer; font: inherit; }
+    .button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .button:hover { transform: translateY(-1px); }
+    .button[disabled] { opacity: .42; cursor: not-allowed; transform: none; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .software-card { display: grid; grid-template-rows: auto 1fr auto; gap: 10px; }
+    .software-card strong { color: var(--accent); }
+    .note { border-left: 4px solid #0f766e; background: #ecfdf5; padding: 12px 14px; border-radius: 0 var(--radius) var(--radius) 0; }
+    .code-wrap { display: grid; gap: 10px; }
+    .copy { border: 1px solid var(--line); background: #fff; border-radius: var(--radius); padding: 8px 11px; font-weight: 800; cursor: pointer; justify-self: start; }
+    pre { overflow: auto; background: #08111f; color: #f8fafc; border-radius: var(--radius); padding: 16px; font-size: 13px; line-height: 1.5; max-height: 360px; border: 1px solid #1e293b; }
+    pre code { display: block; background: transparent; color: #f8fafc; padding: 0; white-space: pre; tab-size: 2; }
+    .guide-shell { padding: 0; overflow: hidden; }
+    .slide-layout { display: grid; grid-template-columns: minmax(0, 1.38fr) minmax(320px, .82fr); min-height: 650px; }
+    .slide-visual { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; padding: 18px; background: #0b1220; color: #fff; }
+    .slide-visual header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .slide-visual strong { display: block; font-size: 16px; }
+    .slide-visual span { color: #cbd5e1; font-size: 13px; }
+    .slide-image-frame { min-height: 0; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; background: #020617; overflow: hidden; display: grid; place-items: center; }
+    .slide-image-frame img { width: 100%; height: 100%; object-fit: contain; display: block; background: #020617; }
+    .progress-dots { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 28px; height: 5px; border-radius: 999px; background: rgba(255,255,255,.18); transition: background .2s ease, width .2s ease; }
+    .dot.is-active { width: 44px; background: #5eead4; }
+    .slide-detail { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 14px; padding: 20px; min-height: 0; background: linear-gradient(180deg, #ffffff, #f8fbff); }
+    .slide-detail h2 { margin: 0; }
+    .slide-detail p { margin: 0; }
+    .slide-body { min-height: 0; overflow: auto; padding-right: 4px; }
+    .slide-body ol { padding-left: 22px; margin: 14px 0 0; }
+    .slide-body li { margin: 7px 0; line-height: 1.45; }
+    .slide-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 12px; }
+    .step-count { color: var(--muted); font-size: 13px; font-weight: 800; }
+    .success-card { border: 1px solid #c7eadf; background: #effcf7; border-radius: 10px; padding: 14px; margin-top: 14px; }
+    .success-card strong { display: block; margin-bottom: 6px; color: #0f766e; }
+    [hidden] { display: none !important; }
+    @media (max-width: 1120px) {
+      .slide-layout, .two, .three { grid-template-columns: 1fr; }
+      .slide-layout { min-height: 0; }
+      .slide-image-frame { min-height: 54vw; }
+    }
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      main { padding: 22px; }
+      h1 { font-size: 32px; }
+      .main-results { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="index.html">
+        <img class="brand-logo" src="assets/images/SIP_Logo.jpeg" alt="SIP logo">
+        <span>DevKit Embedded</span>
+        <small>Training Board</small>
+      </a>
+      <label class="search-box">
+        <span>Search</span>
+        <input data-search type="search" placeholder="Find pin, switch, example...">
+      </label>
+      <div class="search-results" data-search-results hidden></div>
+      <nav>
+        <a class="nav-link " href="index.html">Board Overview</a>
+        <a class="nav-link " href="quick-start.html">Quick Start</a>
+        <a class="nav-link active" href="quick-firmware-upload.html">Firmware Upload</a>
+        <a class="nav-link " href="hardware/power.html">Power</a>
+<a class="nav-link " href="hardware/module-card.html">STM32 Module</a>
+<a class="nav-link " href="hardware/programming.html">Programming</a>
+<a class="nav-link " href="hardware/lcd.html">LCD</a>
+<a class="nav-link " href="hardware/keypad.html">Keypad</a>
+<a class="nav-link " href="hardware/switches.html">Switches</a>
+<a class="nav-link " href="hardware/gpio.html">GPIO / LEDs</a>
+<a class="nav-link " href="hardware/analog.html">Analog / CAN</a>
+<a class="nav-link " href="hardware/communications.html">Comms / RTC / SD</a>
+<a class="nav-link " href="hardware/esp32.html">ESP32 / USB</a>
+<a class="nav-link " href="hardware/seven-segment.html">Seven Segment</a>
+        <a class="nav-link " href="pinout.html">Pinout Reference</a>
+        <a class="nav-link " href="examples.html">Examples</a>
+      </nav>
+    </aside>
+    <main>
+      <section class="section global-search" data-global-search hidden>
+        <h2>Search Results</h2>
+        <div class="main-results" data-global-search-list></div>
+      </section>
+
+      <section class="hero searchable" data-search-item>
+        <span class="eyebrow">Firmware quick guide</span>
+        <h1>Write, Compile, and Upload the First Firmware</h1>
+        <p class="lead">Install a firmware IDE and STM32CubeProgrammer, create a project for the STM32F446RE, compile a HEX file, download it over USB, then return the board to normal run mode.</p>
+        <div class="actions">
+          <a class="button primary" href="#software">Install software</a>
+          <a class="button" href="#firmware-slides">Open step by step guide</a>
+          <a class="button" href="quick-start.html">Hardware preparation guide</a>
+        </div>
+      </section>
+
+      <section class="section searchable" data-search-item id="software">
+        <span class="eyebrow">Required software</span>
+        <h2>Download and Install</h2>
+        <p class="muted">You can write and compile firmware with any STM32-capable IDE. This guide uses mikroC PRO for ARM, but Keil or STM32CubeIDE can also be used. STM32CubeProgrammer is used to upload the compiled HEX file to the board.</p>
+        <div class="grid two">
+          <article class="card software-card">
+            <div>
+              <strong>Firmware IDE</strong>
+              <h3>mikroC PRO for ARM</h3>
+              <p class="muted">Used in this guide to create a standard project, select STM32F446RE, write C code, and compile the HEX file.</p>
+            </div>
+            <p>Alternative IDEs are acceptable if they can target the STM32F446RE and generate a firmware image.</p>
+            <a class="button primary" href="https://www.mikroe.com/mikroc-arm" target="_blank" rel="noopener">Download mikroC PRO for ARM</a>
+          </article>
+          <article class="card software-card">
+            <div>
+              <strong>Firmware uploader</strong>
+              <h3>STM32CubeProgrammer</h3>
+              <p class="muted">Used to open the generated HEX file, connect to the board over USB, and download the firmware.</p>
+            </div>
+            <p>Install this before starting the upload steps. The board must already be prepared using the Quick Start hardware guide.</p>
+            <a class="button primary" href="https://www.st.com/en/development-tools/stm32cubeprog.html" target="_blank" rel="noopener">Download STM32CubeProgrammer</a>
+          </article>
+        </div>
+        <p class="note"><strong>Before uploading:</strong> complete the hardware preparation guide first so the board is in bootloader mode and ready to accept firmware.</p>
+      </section>
+
+      <section class="section guide-shell searchable" data-search-item id="firmware-slides">
+        <div class="slide-layout">
+          <div class="slide-visual">
+            <header>
+              <div>
+                <strong data-slide-heading>Project setup</strong>
+                <span data-slide-subtitle>Create a new STM32F446RE project with 16 MHz clock.</span>
+              </div>
+              <span class="eyebrow" data-slide-kicker>Step 1 of 5</span>
+            </header>
+            <div class="slide-image-frame">
+              <img data-slide-image src="assets/images/prog_steps/step1.png" alt="mikroC project setup">
+            </div>
+            <div class="progress-dots" aria-label="Firmware guide progress" data-progress></div>
+          </div>
+
+          <aside class="slide-detail" aria-live="polite">
+            <header>
+              <span class="eyebrow" data-detail-kicker>Step 1 of 5</span>
+              <h2 data-slide-title>Create the project</h2>
+              <p class="muted" data-slide-body>Open mikroC PRO for ARM, create a new standard project, select STM32F446RE, and set the clock to 16 MHz.</p>
+            </header>
+            <div class="slide-body">
+              <ol data-slide-list>
+                <li>Open mikroC PRO for ARM.</li>
+                <li>Create a new standard project.</li>
+                <li>Select the STM32F446RE device.</li>
+                <li>Set the project clock to 16 MHz.</li>
+              </ol>
+              <div class="success-card" data-final-card hidden>
+                <strong>Firmware is running.</strong>
+                The board is now back in normal run mode and the LEDs should blink using the uploaded firmware.
+              </div>
+            </div>
+            <div class="slide-controls">
+              <span class="step-count" data-step-count>Step 1 of 5</span>
+              <div class="actions">
+                <button class="button" type="button" data-back disabled>Back</button>
+                <button class="button primary" type="button" data-next>Next</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section searchable" data-search-item>
+        <span class="eyebrow">Starter code</span>
+        <h2>First Example: LED Blinking</h2>
+        <p class="muted">Copy this code into the mikroC editor for the first test firmware. It flashes LED4, LED3, LED2, and LED1 using PC11, PC10, PB7, and PB6.</p>
+        <div class="code-wrap">
+          <button class="copy" type="button" data-copy="led-code">Copy LED Blinking code</button>
+          <pre><code id="led-code">/*
+   ------------------------------------------------------------
+   STM32F446RE - LED Test
+   mikroC PRO for ARM
+   ------------------------------------------------------------
+
+   LED outputs:
+     LED4 -> PC11
+     LED3 -> PC10
+     LED2 -> PB7
+     LED1 -> PB6
+
+   Operation:
+     LED Flashing
+
+   Assumption:
+     - LED ON = logic HIGH
+*/
+void main() {
+
+  // Configure LED pins as output
+  GPIO_Digital_Output(&amp;GPIOC_BASE, _GPIO_PINMASK_10 | _GPIO_PINMASK_11);
+  GPIO_Digital_Output(&amp;GPIOB_BASE, _GPIO_PINMASK_6  | _GPIO_PINMASK_7);
+
+  // Turn all LEDs OFF initially
+  GPIOC_ODR &amp;= ~(_GPIO_PINMASK_10 | _GPIO_PINMASK_11);
+  GPIOB_ODR &amp;= ~(_GPIO_PINMASK_6  | _GPIO_PINMASK_7);
+
+  while(1) {
+
+    // LED4 (PC11)
+    GPIOC_ODR |= _GPIO_PINMASK_11;
+    Delay_ms(1000);
+    GPIOC_ODR &amp;= ~_GPIO_PINMASK_11;
+
+    // LED3 (PC10)
+    GPIOC_ODR |= _GPIO_PINMASK_10;
+    Delay_ms(1000);
+    GPIOC_ODR &amp;= ~_GPIO_PINMASK_10;
+
+    // LED2 (PB7)
+    GPIOB_ODR |= _GPIO_PINMASK_7;
+    Delay_ms(1000);
+    GPIOB_ODR &amp;= ~_GPIO_PINMASK_7;
+
+    // LED1 (PB6)
+    GPIOB_ODR |= _GPIO_PINMASK_6;
+    Delay_ms(1000);
+    GPIOB_ODR &amp;= ~_GPIO_PINMASK_6;
+  }
+}</code></pre>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const SITE_INDEX = [
+      { type: 'Guide', title: 'Quick Start', summary: 'Prepare the board hardware for STM32 firmware upload.', url: 'quick-start.html', search: 'quick start programming upload firmware power SW1 USB BOOT0 BOOT1 SW12 DIP EN SW11 reset SW9' },
+      { type: 'Guide', title: 'Firmware Developing and Upload', summary: 'Create a firmware project, compile a HEX file, and upload it with STM32CubeProgrammer.', url: 'quick-firmware-upload.html', search: 'firmware developing upload STM32CubeProgrammer mikroC PRO ARM Keil STM32CubeIDE HEX compile download USB BOOT0 SW9 LED blinking' },
+      { type: 'Hardware', title: 'Programming, Reset, and Wake', summary: 'USB programming and SW9 reset hardware area.', url: 'hardware/programming.html', search: 'programming USB SW9 reset STM32CubeProgrammer' },
+      { type: 'Hardware', title: 'STM32 Module Card', summary: 'STM32F446RE module card and BOOT0 switch.', url: 'hardware/module-card.html', search: 'module card BOOT0 STM32F446RE' },
+      { type: 'Reference', title: 'Examples', summary: 'Firmware examples from basic to advanced.', url: 'examples.html', search: 'examples LED blinking code downloads zip LCD keypad ESP32' }
+    ];
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+    const resultHtml = (item) => `
+      <a class="result-link" href="${escapeHtml(item.url)}">
+        <span>${escapeHtml(item.type)}</span>
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.summary)}</small>
+      </a>`;
+    const globalSearch = document.querySelector('[data-global-search]');
+    const globalSearchList = document.querySelector('[data-global-search-list]');
+    const sidebarResults = document.querySelector('[data-search-results]');
+    const renderSearchResults = (query) => {
+      const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+      if (words.length === 0) {
+        if (globalSearch) globalSearch.hidden = true;
+        if (sidebarResults) sidebarResults.hidden = true;
+        return;
+      }
+      const matches = SITE_INDEX
+        .map((item) => ({ ...item, searchText: `${item.title} ${item.summary} ${item.search}`.toLowerCase() }))
+        .filter((item) => words.every((word) => item.searchText.includes(word)))
+        .slice(0, 12);
+      const html = matches.length
+        ? matches.map(resultHtml).join('')
+        : '<p class="muted">No matching section, pin, or example found.</p>';
+      if (globalSearch && globalSearchList) {
+        globalSearch.hidden = false;
+        globalSearchList.innerHTML = html;
+      }
+      if (sidebarResults) {
+        sidebarResults.hidden = false;
+        sidebarResults.innerHTML = '<p class="search-results-title">Results</p>' + (matches.slice(0, 7).map(resultHtml).join('') || '<small>No matches</small>');
+      }
+    };
+    const searchInput = document.querySelector('[data-search]');
+    if (searchInput) {
+      const targets = Array.from(document.querySelectorAll('[data-search-item]'));
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        renderSearchResults(q);
+        targets.forEach((target) => {
+          target.hidden = q.length > 0 && !target.textContent.toLowerCase().includes(q);
+        });
+      });
+    }
+
+    document.querySelectorAll('[data-copy]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const target = document.getElementById(button.dataset.copy);
+        if (!target) return;
+        await navigator.clipboard.writeText(target.innerText);
+        const oldText = button.innerText;
+        button.innerText = 'Copied';
+        setTimeout(() => button.innerText = oldText, 1200);
+      });
+    });
+
+    const slides = [
+      {
+        kicker: 'Step 1 of 5',
+        heading: 'Project setup',
+        subtitle: 'Create a new STM32F446RE project with 16 MHz clock.',
+        title: 'Create the project',
+        body: 'Open mikroC PRO for ARM, create a new standard project, select STM32F446RE, and set the clock to 16 MHz.',
+        image: 'assets/images/prog_steps/step1.png',
+        alt: 'mikroC project setup',
+        list: [
+          'Open mikroC PRO for ARM.',
+          'Create a new standard project.',
+          'Select the STM32F446RE device.',
+          'Set the project clock to 16 MHz.'
+        ]
+      },
+      {
+        kicker: 'Step 2 of 5',
+        heading: 'Write and compile',
+        subtitle: 'Paste the LED Blinking example and press the compile icon.',
+        title: 'Write code and compile',
+        body: 'Copy the LED Blinking starter code, paste it into the project, then press the compile icon in the upper toolbar.',
+        image: 'assets/images/prog_steps/step2.png',
+        alt: 'mikroC compile button and success output',
+        list: [
+          'Paste the LED Blinking code into the mikroC editor.',
+          'Press the compile icon in the upper bar.',
+          'Check the bottom output area for the successful finish indication.',
+          'If errors appear, fix the code and compile again before continuing.'
+        ]
+      },
+      {
+        kicker: 'Step 3 of 5',
+        heading: 'Open the HEX file',
+        subtitle: 'Load the generated HEX file in STM32CubeProgrammer and select USB.',
+        title: 'Download the HEX file',
+        body: 'Open STM32CubeProgrammer, browse to the folder where the project was saved, open the generated .hex file, select USB, then press Download.',
+        image: 'assets/images/prog_steps/step3.png',
+        alt: 'STM32CubeProgrammer HEX file download setup',
+        list: [
+          'Open STM32CubeProgrammer.',
+          'Browse to the saved mikroC project location.',
+          'Open the generated .hex file.',
+          'Select USB as the connection method.',
+          'Press Download to program the STM32.'
+        ]
+      },
+      {
+        kicker: 'Step 4 of 5',
+        heading: 'Confirm programming',
+        subtitle: 'STM32CubeProgrammer shows the successful download result.',
+        title: 'Verify download success',
+        body: 'After Download finishes, confirm that STM32CubeProgrammer reports a successful firmware download.',
+        image: 'assets/images/prog_steps/step4.png',
+        alt: 'STM32CubeProgrammer successful download result',
+        list: [
+          'Wait until the download process completes.',
+          'Confirm the success message shown by STM32CubeProgrammer.',
+          'Do not disconnect power while programming is in progress.'
+        ]
+      },
+      {
+        kicker: 'Step 5 of 5',
+        heading: 'Run the firmware',
+        subtitle: 'Return the board to normal run mode and reset it.',
+        title: 'Run the uploaded LED firmware',
+        body: 'Go back to the board, turn OFF the BOOT0 switch, then press SW9 RESET. The uploaded LED Blinking code should start running.',
+        image: 'assets/images/programming.jpg',
+        alt: 'Programming section with SW9 reset switch',
+        list: [
+          'Return to the DevKit Embedded board.',
+          'Turn OFF the BOOT0 switch on the STM32 module card.',
+          'Press SW9 RESET on the main board.',
+          'Watch LED1 to LED4 blink one after another.'
+        ],
+        final: true
+      }
+    ];
+
+    const slideHeading = document.querySelector('[data-slide-heading]');
+    const slideSubtitle = document.querySelector('[data-slide-subtitle]');
+    const slideKicker = document.querySelector('[data-slide-kicker]');
+    const detailKicker = document.querySelector('[data-detail-kicker]');
+    const slideTitle = document.querySelector('[data-slide-title]');
+    const slideBody = document.querySelector('[data-slide-body]');
+    const slideImage = document.querySelector('[data-slide-image]');
+    const slideList = document.querySelector('[data-slide-list]');
+    const finalCard = document.querySelector('[data-final-card]');
+    const stepCount = document.querySelector('[data-step-count]');
+    const nextButton = document.querySelector('[data-next]');
+    const backButton = document.querySelector('[data-back]');
+    const progress = document.querySelector('[data-progress]');
+    let currentSlide = 0;
+
+    const renderProgress = () => {
+      progress.innerHTML = slides.map((_, index) => `<span class="dot ${index === currentSlide ? 'is-active' : ''}"></span>`).join('');
+    };
+
+    const renderSlide = () => {
+      const slide = slides[currentSlide];
+      slideHeading.textContent = slide.heading;
+      slideSubtitle.textContent = slide.subtitle;
+      slideKicker.textContent = slide.kicker;
+      detailKicker.textContent = slide.kicker;
+      slideTitle.textContent = slide.title;
+      slideBody.textContent = slide.body;
+      slideImage.src = slide.image;
+      slideImage.alt = slide.alt;
+      slideList.innerHTML = slide.list.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+      finalCard.hidden = !slide.final;
+      stepCount.textContent = slide.kicker;
+      backButton.disabled = currentSlide === 0;
+      nextButton.textContent = currentSlide === slides.length - 1 ? 'Restart' : 'Next';
+      renderProgress();
+    };
+
+    nextButton.addEventListener('click', () => {
+      currentSlide = currentSlide === slides.length - 1 ? 0 : currentSlide + 1;
+      renderSlide();
+    });
+    backButton.addEventListener('click', () => {
+      currentSlide = Math.max(0, currentSlide - 1);
+      renderSlide();
+    });
+    renderSlide();
+  </script>
+</body>
+</html>

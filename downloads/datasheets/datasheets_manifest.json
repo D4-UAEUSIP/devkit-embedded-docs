@@ -1,0 +1,102 @@
+{
+  "stm32f446re": {
+    "title": "STM32F446RE MCU",
+    "file": "stm32f446re.pdf",
+    "source": "local datasheet cache"
+  },
+  "lm34": {
+    "title": "LM34 temperature sensor",
+    "file": "lm34.pdf",
+    "source": "local datasheet cache"
+  },
+  "lis2dw12": {
+    "title": "LIS2DW12TR accelerometer",
+    "file": "lis2dw12tr.pdf",
+    "source": "local datasheet cache"
+  },
+  "ds1337": {
+    "title": "DS1337 RTC",
+    "file": "ds1337.pdf",
+    "source": "local datasheet cache"
+  },
+  "sn74hc595": {
+    "title": "SN74HC595 shift register",
+    "file": "sn74hc595.pdf",
+    "source": "local datasheet cache"
+  },
+  "esp32_wrover": {
+    "title": "ESP32-WROVER-E module",
+    "file": "esp32-wrover-e.pdf",
+    "source": "local datasheet cache"
+  },
+  "cp2102": {
+    "title": "CP2102 USB-UART bridge",
+    "file": "cp2102.pdf",
+    "source": "local datasheet cache"
+  },
+  "usblc6": {
+    "title": "USBLC6-2 USB ESD protection",
+    "file": "usblc6-2.pdf",
+    "source": "local datasheet cache"
+  },
+  "mmbt3904": {
+    "title": "MMBT3904 transistor",
+    "file": "mmbt3904.pdf",
+    "source": "local datasheet cache"
+  },
+  "mmbt5401": {
+    "title": "MMBT5401 PNP transistor",
+    "file": "mmbt5401.pdf",
+    "source": "local datasheet cache"
+  },
+  "sbc846": {
+    "title": "BC846/SBC846 NPN transistor family",
+    "file": "bc846-series.pdf",
+    "source": "local datasheet cache"
+  },
+  "bat54s": {
+    "title": "BAT54S dual Schottky diode",
+    "file": "bat54s.pdf",
+    "source": "local datasheet cache"
+  },
+  "b340a": {
+    "title": "B340A Schottky diode",
+    "file": "b340a.pdf",
+    "source": "local datasheet cache"
+  },
+  "ss14": {
+    "title": "SS14 Schottky diode",
+    "file": "ss14.pdf",
+    "source": "local datasheet cache"
+  },
+  "ams1117": {
+    "title": "AMS1117 3.3 V regulator",
+    "file": "ams1117-3v3.pdf",
+    "source": "local datasheet cache"
+  },
+  "ltst_c930": {
+    "title": "LTST-C930KRKT red LED",
+    "file": "ltst-c930krkt.pdf",
+    "source": "local datasheet cache"
+  },
+  "tlp241a": {
+    "title": "TLP241A photorelay",
+    "file": "tlp241a.pdf",
+    "source": "local datasheet cache"
+  },
+  "lcd1602": {
+    "title": "LCD1602 / HD44780 character LCD reference",
+    "file": "lcd1602-hd44780.pdf",
+    "source": "local datasheet cache"
+  },
+  "keypad4x4": {
+    "title": "4x4 membrane keypad reference",
+    "file": "4x4-keypad.pdf",
+    "source": "local datasheet cache"
+  },
+  "sevenseg_display": {
+    "title": "Seven-segment display reference",
+    "file": "seven-segment-display.pdf",
+    "source": "local datasheet cache"
+  }
+}
